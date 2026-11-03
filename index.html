@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es-UY">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bot de turnos con recordatorios · Demo por Alcruxia</title>
+<meta name="description" content="Demo interactiva: asistente de turnos con recordatorios automáticos para clínicas, veterinarias y estudios. Por Alcruxia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234F46E5'/%3E%3Cstop offset='1' stop-color='%2306B6D4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M20 46 32 16l12 30M25 36h14' stroke='white' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4F46E5"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#lg)"/><path d="M20 46 32 16l12 30M25 36h14" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="brand-text">
+      <strong>Alcruxia</strong>
+      <span>Bot de turnos con recordatorios · <em>Demo</em></span>
+    </div>
+  </div>
+
+  <div class="biz-switch" role="tablist" aria-label="Tipo de negocio" id="bizSwitch">
+    <button role="tab" data-biz="dental">🦷 <span>Dental</span></button>
+    <button role="tab" data-biz="vet">🐾 <span>Veterinaria</span></button>
+    <button role="tab" data-biz="pilates">🧘 <span>Pilates</span></button>
+  </div>
+
+  <div class="top-actions">
+    <button class="btn btn-accent" id="btnReminder" title="Envía al chat el recordatorio del próximo turno">🔔 <span>Simular recordatorio 24 h antes</span></button>
+    <button class="btn btn-ghost" id="btnReset" title="Vuelve la demo a su estado inicial">↺ <span>Reiniciar demo</span></button>
+  </div>
+</header>
+
+<nav class="mobile-tabs" id="mobileTabs">
+  <button data-view="chat" class="active">💬 Chat del cliente</button>
+  <button data-view="panel">📋 <span id="mobilePanelLabel">Panel de la clínica</span> <b class="badge-dot" id="panelDot" hidden></b></button>
+</nav>
+
+<main class="stage" id="stage" data-view="chat">
+  <!-- CHAT -->
+  <section class="col col-chat" aria-label="Chat con el asistente">
+    <div class="col-caption">
+      <span class="step-pill">1</span> Así lo ve tu cliente
+    </div>
+    <div class="phone">
+      <div class="phone-notch" aria-hidden="true"></div>
+      <div class="chat">
+        <div class="chat-header">
+          <div class="avatar" id="chatAvatar">🦷</div>
+          <div class="chat-title">
+            <strong id="chatName">Clínica Dental Sonría</strong>
+            <span><i class="online"></i> <span id="chatStatus">Asistente virtual · responde al instante</span></span>
+          </div>
+          <div class="chat-badge">24/7</div>
+        </div>
+        <div class="chat-body" id="chatBody" aria-live="polite"></div>
+        <div class="quick" id="quick"></div>
+        <form class="composer" id="composer" autocomplete="off">
+          <input id="chatInput" type="text" placeholder="Escribí un mensaje…" aria-label="Escribí un mensaje">
+          <button type="submit" class="send" aria-label="Enviar">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12 2-12 2z" fill="currentColor"/></svg>
+          </button>
+        </form>
+        <div class="chat-foot">Se integra con WhatsApp, Instagram y la web · Tecnología Alcruxia</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL -->
+  <section class="col col-panel" aria-label="Panel de gestión">
+    <div class="col-caption">
+      <span class="step-pill">2</span> Así lo ve tu equipo
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h1 id="panelTitle">Panel de la clínica</h1>
+          <p id="panelSub">Clínica Dental Sonría · agenda en vivo</p>
+        </div>
+        <div class="live"><i></i> En vivo</div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="agenda-bar">
+        <div class="seg" id="viewSeg">
+          <button data-mode="day" class="active">Día</button>
+          <button data-mode="week">Semana</button>
+        </div>
+        <div class="date-nav">
+          <button class="icon-btn" id="prevDate" aria-label="Anterior">‹</button>
+          <button class="date-label" id="todayBtn" title="Volver a hoy"><span id="dateLabel">Hoy</span></button>
+          <button class="icon-btn" id="nextDate" aria-label="Siguiente">›</button>
+        </div>
+      </div>
+
+      <div class="agenda" id="agenda"></div>
+
+      <div class="legend">
+        <span><i class="lg lg-booked"></i>Agendado</span>
+        <span><i class="lg lg-wait"></i>Esperando confirmación</span>
+        <span><i class="lg lg-ok"></i>Confirmado / asistió</span>
+        <span><i class="lg lg-no"></i>No vino</span>
+        <span><i class="lg lg-block"></i>Bloqueado</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>Demo por <strong>Alcruxia</strong> · Soluciones de automatización e IA para pymes · Montevideo, Uruguay</span>
+  <span class="muted">Todos los datos, nombres y teléfonos son ficticios. Los datos de la demo quedan solo en este navegador.</span>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
