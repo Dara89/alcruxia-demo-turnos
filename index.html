@@ -36,8 +36,9 @@
 </header>
 
 <nav class="mobile-tabs" id="mobileTabs">
-  <button data-view="chat" class="active">💬 Chat del cliente</button>
-  <button data-view="panel">📋 <span id="mobilePanelLabel">Panel de la clínica</span> <b class="badge-dot" id="panelDot" hidden></b></button>
+  <button data-view="chat" class="active">💬 Chat</button>
+  <button data-view="panel">📅 Agenda <b class="badge-dot" id="panelDot" hidden></b></button>
+  <button data-view="inbox">📥 Conversaciones <b class="cnt" id="mobileInboxBadge" hidden></b></button>
 </nav>
 
 <main class="stage" id="stage" data-view="chat">
@@ -81,9 +82,16 @@
           <h1 id="panelTitle">Panel de la clínica</h1>
           <p id="panelSub">Clínica Dental Sonría · agenda en vivo</p>
         </div>
-        <div class="live"><i></i> En vivo</div>
+        <div class="head-right">
+          <div class="ptabs" id="ptabs" role="tablist">
+            <button data-ptab="agenda" class="active">📅 Agenda</button>
+            <button data-ptab="inbox">💬 Conversaciones <b class="cnt" id="inboxBadge" hidden></b></button>
+          </div>
+          <div class="live"><i></i> En vivo</div>
+        </div>
       </div>
 
+      <div class="ptab" id="tabAgenda">
       <div class="stats" id="stats"></div>
 
       <div class="agenda-bar">
@@ -106,6 +114,43 @@
         <span><i class="lg lg-ok"></i>Confirmado / asistió</span>
         <span><i class="lg lg-no"></i>No vino</span>
         <span><i class="lg lg-block"></i>Bloqueado</span>
+      </div>
+      </div>
+
+      <div class="ptab" id="tabInbox" hidden>
+        <div class="stats stats-sm" id="ibxStats"></div>
+        <div class="ibx" id="ibx" data-mobile="list">
+          <aside class="ibx-list">
+            <div class="ibx-tools">
+              <input id="ibxSearch" class="ibx-search" type="search" placeholder="Buscar por nombre, teléfono o mensaje…" aria-label="Buscar conversaciones">
+              <div class="ibx-row">
+                <div class="ch-filter" id="chFilter"></div>
+                <select id="stFilter" class="st-filter" aria-label="Filtrar por estado">
+                  <option value="all">Todos los estados</option>
+                  <option value="atencion">⚠️ Requiere atención</option>
+                  <option value="bot">🤖 Bot atendiendo</option>
+                  <option value="derivado">👩‍💼 Derivado a humano</option>
+                  <option value="resuelto">✓ Resuelto</option>
+                </select>
+              </div>
+            </div>
+            <div class="conv-list" id="convList"></div>
+          </aside>
+          <section class="ibx-thread" id="ibxThread">
+            <div class="th-head" id="thHead"></div>
+            <div class="th-banner" id="thBanner"></div>
+            <div class="th-body" id="thBody"></div>
+            <form class="th-composer" id="thComposer" autocomplete="off" hidden>
+              <div class="th-mode" id="thMode">
+                <button type="button" data-mode="reply" class="active">Responder</button>
+                <button type="button" data-mode="note">🔒 Nota</button>
+              </div>
+              <input id="thInput" type="text" placeholder="Escribí tu respuesta…" aria-label="Respuesta">
+              <button type="submit" class="th-send">Enviar</button>
+            </form>
+            <aside class="ibx-card" id="ccard"></aside>
+          </section>
+        </div>
       </div>
     </div>
   </section>

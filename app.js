@@ -3,7 +3,7 @@
 (() => {
 'use strict';
 
-const STORE_KEY = 'alcruxia-demo-turnos-v1';
+const STORE_KEY = 'alcruxia-demo-turnos-v2';
 const FAST = new URLSearchParams(location.search).has('fast');
 const TYPE_MS = FAST ? 40 : 650;
 
@@ -43,7 +43,7 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const WEEKDAYS = (ranges) => ({ 1: ranges, 2: ranges, 3: ranges, 4: ranges, 5: ranges });
 const BIZ = {
   dental: {
-    emoji: '🦷', name: 'Clínica Dental Sonría', assistant: 'Sofi', panelTitle: 'Panel de la clínica', client: 'paciente', clients: 'pacientes',
+    emoji: '🦷', name: 'Clínica Dental Sonría', assistant: 'Sofi', agent: 'Carolina', panelTitle: 'Panel de la clínica', client: 'paciente', clients: 'pacientes',
     services: [
       { id: 'consulta', name: 'Consulta y diagnóstico', dur: 30, price: 1500, kw: ['consulta', 'diagnost', 'control', 'revision', 'chequeo'] },
       { id: 'limpieza', name: 'Limpieza dental', dur: 45, price: 2200, kw: ['limpieza', 'sarro', 'higiene'] },
@@ -61,7 +61,7 @@ const BIZ = {
     names: ['Ana Ejemplo', 'Martín Prueba', 'Lucía Demo', 'Diego Ficticio', 'Sofía Muestra', 'Pablo Testeo', 'Carla Simulada', 'Joaquín Ejemplar', 'Valentina Demo'],
   },
   vet: {
-    emoji: '🐾', name: 'Veterinaria Huellitas', assistant: 'Lola', panelTitle: 'Panel de la veterinaria', client: 'cliente', clients: 'clientes',
+    emoji: '🐾', name: 'Veterinaria Huellitas', assistant: 'Lola', agent: 'Martina', panelTitle: 'Panel de la veterinaria', client: 'cliente', clients: 'clientes',
     services: [
       { id: 'consulta', name: 'Consulta general', dur: 30, price: 1200, kw: ['consulta', 'control', 'revision', 'chequeo', 'enfermo', 'mal'] },
       { id: 'vacuna', name: 'Vacunación', dur: 30, price: 900, kw: ['vacun', 'antirrab', 'refuerzo'] },
@@ -80,7 +80,7 @@ const BIZ = {
     pets: ['Firulais', 'Michi', 'Tango', 'Luna', 'Rocco', 'Pelusa', 'Simón', 'Nala', 'Toby'],
   },
   pilates: {
-    emoji: '🧘', name: 'Estudio Pilates Equilibrio', assistant: 'Vera', panelTitle: 'Panel del estudio', client: 'alumna/o', clients: 'alumnos',
+    emoji: '🧘', name: 'Estudio Pilates Equilibrio', assistant: 'Vera', agent: 'Florencia', panelTitle: 'Panel del estudio', client: 'alumna/o', clients: 'alumnos',
     services: [
       { id: 'prueba', name: 'Clase de prueba', dur: 60, price: 0, kw: ['prueba', 'primera', 'probar', 'gratis'] },
       { id: 'reformer', name: 'Pilates reformer', dur: 60, price: 1300, kw: ['reformer', 'maquina'] },
@@ -104,6 +104,7 @@ let state;
 const fresh = () => ({ v: 1, biz: 'dental', data: {} });
 function bizState(key = state.biz) {
   if (!state.data[key]) state.data[key] = seedBiz(key);
+  if (!state.data[key].inbox) state.data[key].inbox = seedInbox(key, state.data[key]);
   return state.data[key];
 }
 const S = () => bizState();
@@ -166,6 +167,7 @@ function seedBiz(key) {
   });
   const s1 = slotsFor(d1, key); const bt = s1.find(t => !st.bookings.some(x => x.date === d1 && x.time === t && x.status !== 'cancelado') && toMin(t) >= 12 * 60) || s1[s1.length - 1];
   if (bt) st.blocks.push({ date: d1, time: bt, reason: 'Reunión de equipo' });
+  st.inbox = seedInbox(key, st);
   return st;
 }
 
@@ -178,9 +180,8 @@ function renderHeader() {
   document.body.dataset.biz = state.biz;
   $('#chatAvatar').textContent = b.emoji;
   $('#chatName').textContent = b.name;
-  $('#chatStatus').textContent = `${b.assistant} · asistente virtual`;
+  $('#chatStatus').textContent = S().inbox?.live.botPaused ? `${b.agent} (recepción) está respondiendo` : `${b.assistant} · asistente virtual`;
   $('#panelTitle').textContent = b.panelTitle;
-  $('#mobilePanelLabel').textContent = b.panelTitle;
   $('#panelSub').textContent = `${b.name} · agenda en vivo`;
   document.querySelectorAll('#bizSwitch button').forEach(x => x.classList.toggle('active', x.dataset.biz === state.biz));
 }
@@ -190,6 +191,7 @@ function msgHTML(m) {
   const time = new Date(m.ts); const t = `${pad(time.getHours())}:${pad(time.getMinutes())}`;
   let inner = '';
   if (m.kind === 'reminder') inner += `<div class="rem-head">🔔 Recordatorio automático · 24 h antes</div>`;
+  if (m.from === 'staff') inner += `<div class="agent">👩‍💼 ${esc(m.agent || 'Recepción')} · Recepción</div>`;
   inner += fmt(m.text);
   if (m.actions && m.actions.length) {
     inner += `<div class="actions ${m.used ? 'used' : ''}">` + m.actions.map(a =>
@@ -229,7 +231,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 function push(m) {
   m.id = m.id || uid(); m.ts = m.ts || Date.now();
   S().chat.push(m); if (S().chat.length > 200) S().chat.splice(0, S().chat.length - 200);
-  save(); appendMsg(m);
+  save(); appendMsg(m); onLiveMsg(m);
   return m;
 }
 async function say(text, opts = {}) {
@@ -258,6 +260,11 @@ function userSays(label, payload) {
   const text = (label || '').trim(); if (!text) return;
   setQuick([]);
   push({ from: 'user', text });
+  const L = S().inbox.live;
+  if (L.botPaused && !(payload && payload.startsWith('rem:'))) {
+    notifyInbox(`💬 ${S().convo.knownName || 'El cliente'} escribió: lo atiende ${B().agent} (bot en pausa)`);
+    return;
+  }
   queue = queue.then(() => handle(payload ? { payload } : { text })).catch(e => console.error(e));
 }
 
@@ -529,7 +536,10 @@ async function human(silent) {
   const st = S(); st.stats.handoffs++; st.convo.misses = 0; setStep('idle', {});
   if (!silent) await say(`Te derivo con una persona del equipo 👩‍💼 Te van a responder por este mismo chat en horario de atención (${B().hours.split('.')[0].toLowerCase()}).\n¡Gracias por la paciencia!`);
   sys('🔔 Conversación derivada a recepción');
-  renderPanel({ bump: true }); notifyPanel('👤 Una conversación fue derivada a una persona');
+  const L = st.inbox.live; L.status = 'derivado'; L.attention = true; save();
+  renderPanel({ bump: true });
+  toast('⚠️ Requiere atención: el bot derivó una conversación a una persona', { label: 'Ver', fn: () => openConv('live', true) });
+  refreshInbox();
   setQuick([{ label: '📅 Mientras tanto, sacar turno', payload: 'intent:book', cls: 'secondary' }]);
 }
 async function fallback() {
@@ -555,7 +565,7 @@ function sendReminder(bk) {
     bk.reminder = 'enviado'; save(); renderPanel({ flash: bk.id });
     sys(`Simulación: recordatorio enviado a ${bk.name} (${bk.phone})`);
     setQuick([]);
-    await say(`Hola ${first(bk.name)} 👋 Te recordamos tu turno de **${service(bk.service).name}**${bk.extra ? ` para **${bk.extra}**` : ''} ${dayPhrase(bk.date)} a las **${bk.time}** en ${B().name} (${B().address}).\n\n¿Nos confirmás tu asistencia?`, {
+    await say(reminderText(bk), {
       msg: { kind: 'reminder', actions: [
         { label: '✅ Confirmo', payload: `rem:confirm:${bk.id}` },
         { label: '🔄 Reprogramar', payload: `rem:resched:${bk.id}` },
@@ -667,7 +677,7 @@ function renderWeek() {
 }
 const availableSlotsAll = d => slotsFor(d).filter(tm => !activeBooking(d, tm) && !blockAt(d, tm)).length;
 function renderPanel(opts = {}) {
-  renderStats(opts.bump);
+  renderStats(opts.bump); updateInboxBadge();
   document.querySelectorAll('#viewSeg button').forEach(b => b.classList.toggle('active', b.dataset.mode === panelMode));
   if (panelMode === 'day') {
     const r = rel(panelDate);
@@ -699,11 +709,347 @@ function notifyPanel(text) {
   else toast(text);
 }
 function setView(v) {
-  $('#stage').dataset.view = v;
-  document.querySelectorAll('#mobileTabs button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-  if (v === 'panel') { $('#panelDot').hidden = true; document.querySelectorAll('.toast').forEach(t => t.querySelector('button') && t.remove()); }
+  $('#stage').dataset.view = v === 'chat' ? 'chat' : 'panel';
+  if (v !== 'chat') setPanelTab(v === 'inbox' ? 'inbox' : 'agenda');
+  syncMobileTabs();
+  if (v !== 'chat') { $('#panelDot').hidden = true; document.querySelectorAll('.toast').forEach(t => t.querySelector('button') && t.remove()); }
   if (v === 'chat') scrollChat();
 }
+function syncMobileTabs() {
+  const v = $('#stage').dataset.view === 'chat' ? 'chat' : (panelTab === 'inbox' ? 'inbox' : 'panel');
+  document.querySelectorAll('#mobileTabs button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+}
+
+/* ---------- Bandeja omnicanal ---------- */
+const ICON = {
+  whatsapp: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="7" r="1.2" fill="currentColor"/></svg>',
+  messenger: '<svg viewBox="0 0 24 24"><path d="M12 3C7 3 3 6.7 3 11.3c0 2.6 1.3 4.9 3.3 6.4V21l3-1.7c.9.3 1.8.4 2.7.4 5 0 9-3.7 9-8.4S17 3 12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m7.5 13.5 3-3 2.5 2 3.5-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  web: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.5 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.5-3.5-8.5s1-6 3.5-8.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  email: '<svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+};
+const CHANNELS = {
+  whatsapp: { label: 'WhatsApp', color: '#0F766E', bg: '#CCFBF1' },
+  instagram: { label: 'Instagram', color: '#BE185D', bg: '#FCE7F3' },
+  messenger: { label: 'Messenger', color: '#6D28D9', bg: '#EDE9FE' },
+  web: { label: 'Web chat', color: '#1D4ED8', bg: '#DBEAFE' },
+  email: { label: 'Email', color: '#B45309', bg: '#FEF3C7' },
+};
+const chBadge = (ch, extra = '') => { const c = CHANNELS[ch]; return `<span class="chb" style="--c:${c.color};--b:${c.bg}">${ICON[ch]}${c.label}${extra}</span>`; };
+
+function reminderText(bk, key = state.biz) {
+  const b = BIZ[key]; const s = b.services.find(x => x.id === bk.service) || b.services[0];
+  return `Hola ${first(bk.name)} 👋 Te recordamos tu turno de **${s.name}**${bk.extra ? ` para **${bk.extra}**` : ''} ${dayPhrase(bk.date)} a las **${bk.time}** en ${b.name} (${b.address}).\n\n¿Nos confirmás tu asistencia?`;
+}
+
+function seedInbox(key, st) {
+  const b = BIZ[key]; const ago = m => Date.now() - m * 60000; const P = n => money(n);
+  const price = id => b.services.find(s => s.id === id)?.price ?? 0;
+  const C = {
+    dental: {
+      ig: ['Camila Ejemplo', '@camila.ejemplo', [
+        ['client', 'Hola!! Vi el posteo del blanqueamiento 😍 ¿cuánto sale?', 42],
+        ['bot', `¡Hola Camila! 👋 El blanqueamiento sale **${P(price('blanqueamiento'))}** y se puede pagar hasta en 3 cuotas sin recargo. Antes hacemos una consulta de diagnóstico (${P(price('consulta'))}). ¿Querés que te reserve una?`, 41],
+        ['client', 'Siii, ¿tienen algo el sábado de mañana?', 7]]],
+      fb: [['Buenas. Ayer tenía turno a las 15 y me hicieron esperar 40 minutos 😡', 96], ['Encima me cobraron distinto de lo que me habían dicho por teléfono', 95]],
+      fbBot: 'Lamento mucho lo que pasó, Roberto 🙏 Esto lo tiene que ver una persona del equipo: te derivo con recepción y te responden a la brevedad.',
+      web: [['Hola, ¿trabajan con mutualistas o seguros?', 190], ['¡Hola! No trabajamos con mutualistas, pero aceptamos débito, crédito (hasta 3 cuotas sin recargo), transferencia y Mercado Pago. Si tenés seguro con reintegro, te damos la factura detallada 😊', 190], ['Perfecto, gracias!', 188]],
+      mail: ['Asunto: Factura con RUT\nHola, ¿me podrían enviar la factura de mi última consulta a nombre de mi empresa? RUT 210000000019 (ficticio). Gracias.', 'Hola Sofía, ¡claro! Te la enviamos hoy antes de las 18 h. Saludos, Carolina.', 'Pide factura con RUT. Pasar a administración.'],
+    },
+    vet: {
+      ig: ['Mica Ejemplo', '@mica.y.tango', [
+        ['client', 'Hola! ¿Hacen baño y corte para perros grandes? Tengo un golden 🐕', 38],
+        ['bot', `¡Hola Mica! Sí 🙌 Baño y corte desde **${P(price('bano'))}** (en perros grandes puede haber un recargo según el pelaje). ¿Querés que te reserve un lugar?`, 37],
+        ['client', '¿Y el sábado temprano tienen?', 6]]],
+      fb: [['Les escribí ayer por la vacuna de mi gata y nadie me contestó 😤', 90], ['Necesito saber si le toca el refuerzo este mes', 89]],
+      fbBot: 'Perdón por la demora, Roberto 🙏 Te derivo con una persona del equipo para revisar la libreta de tu gata y responderte enseguida.',
+      web: [['¿Hacen consultas a domicilio en Ciudad de la Costa?', 200], [`¡Hola! Sí, cubrimos Montevideo y Ciudad de la Costa. La consulta a domicilio sale **${P(price('domicilio'))}**. ¿Querés reservar una?`, 200], ['Genial, después reservo. Gracias!', 197]],
+      mail: ['Asunto: Certificado de vacunas\nHola, viajamos a Brasil con Luna en diciembre y necesito el certificado de vacunas. ¿Me lo pueden preparar?', 'Hola Sofía, sí. Lo podés pasar a buscar el jueves después de las 15 h. Saludos, Martina.', 'Revisar vigencia de la antirrábica antes de emitir el certificado.'],
+    },
+    pilates: {
+      ig: ['Mica Ejemplo', '@mica.ejemplo', [
+        ['client', 'Hola! Nunca hice pilates 🙈 ¿puedo probar una clase?', 45],
+        ['bot', '¡Hola Mica! Claro 😊 La **clase de prueba no tiene costo**. Tenemos reformer y mat grupal. ¿Querés que te reserve una?', 44],
+        ['client', '¿A las 7 de la mañana hay lugar?', 5]]],
+      fb: [['Hola, me cobraron dos veces el pase mensual este mes 😕', 92], ['Les mando captura del estado de cuenta', 91]],
+      fbBot: 'Uy, lamento la molestia, Roberto 🙏 Te derivo con una persona del equipo para revisar el cobro y devolverte lo que corresponda.',
+      web: [['¿Qué tengo que llevar a la primera clase?', 210], ['Ropa cómoda y medias antideslizantes (si no tenés, te prestamos 😉). Tenemos vestuario con duchas.', 210], ['Buenísimo, gracias!', 207]],
+      mail: ['Asunto: Factura pase mensual\nHola, ¿me pueden mandar la factura del pase de noviembre a nombre de mi empresa? Gracias.', 'Hola Sofía, ¡sí! Te la enviamos hoy por este medio. Saludos, Florencia.', 'Factura a nombre de empresa (RUT ficticio en el legajo).'],
+    },
+  }[key];
+  const msgs = arr => arr.map(([from, text, m, kind]) => ({ from, text, ts: ago(m), ...(kind ? { kind } : {}) }));
+  const convs = [];
+  convs.push({ id: uid(), channel: 'instagram', name: C.ig[0], handle: C.ig[1], phone: '', status: 'bot', attention: false, botPaused: false, unread: 1, notes: [], messages: msgs(C.ig[2]) });
+  convs.push({ id: uid(), channel: 'messenger', name: 'Roberto Muestra', handle: 'Roberto Muestra (Facebook)', phone: '099 000 090', status: 'derivado', attention: true, botPaused: false, unread: 2, notes: [],
+    messages: msgs([['client', C.fb[0][0], C.fb[0][1]], ['client', C.fb[1][0], C.fb[1][1]], ['bot', C.fbBot, C.fb[1][1] - 0.5], ['sys', '🔔 Conversación derivada a recepción', C.fb[1][1] - 0.6]]) });
+  const rb = st.bookings.find(x => x.reminder === 'confirmado' && x.status === 'confirmado' && x.source === 'seed') || st.bookings.find(x => x.status === 'confirmado');
+  if (rb) convs.push({ id: uid(), channel: 'whatsapp', name: rb.name, handle: rb.phone, phone: rb.phone, status: 'resuelto', attention: false, botPaused: false, unread: 0, notes: [],
+    messages: msgs([['bot', reminderText(rb, key), 150, 'reminder'], ['client', '✅ Confirmo', 128], ['bot', `¡Genial, ${first(rb.name)}! Tu turno queda **confirmado** ✅ Te esperamos ${dayPhrase(rb.date)} a las **${rb.time}**.`, 128]]) });
+  convs.push({ id: uid(), channel: 'web', name: 'Laura Testeo', handle: 'Visitante de la web', phone: '', status: 'resuelto', attention: false, botPaused: false, unread: 0, notes: [],
+    messages: msgs([['client', C.web[0][0], C.web[0][1]], ['bot', C.web[1][0], C.web[1][1]], ['client', C.web[2][0], C.web[2][1]], ['bot', '¡De nada! 😊 Cualquier cosa, escribime por acá.', C.web[2][1] - 0.3]]) });
+  const sb = st.bookings.find(x => x.name === BIZ[key].names[4]);
+  convs.push({ id: uid(), channel: 'email', name: BIZ[key].names[4], handle: 'sofia.muestra@ejemplo.com', phone: sb ? sb.phone : '', status: 'derivado', attention: false, botPaused: true, unread: 0,
+    notes: [{ type: 'note', text: C.mail[2], agent: b.agent, ts: ago(250) }],
+    messages: msgs([['client', C.mail[0], 300], ['bot', 'Recibimos tu correo 📩 Lo derivamos a administración, que te responde en el día.', 299.5], ['staff', C.mail[1], 240]]).map(m => m.from === 'staff' ? { ...m, agent: b.agent } : m) });
+  return { live: { channel: 'whatsapp', status: 'bot', attention: false, botPaused: false, unread: 0, notes: [] }, convs };
+}
+
+let panelTab = 'agenda';
+let selConv = null;
+let ibxFilter = { ch: 'all', st: 'all', q: '' };
+let composeMode = 'reply';
+let showCard = false;
+
+const IB = () => S().inbox;
+function liveConv() {
+  const st = S(); const c = st.convo;
+  return { ...st.inbox.live, id: 'live', live: true, name: c.knownName || 'Visitante del chat', phone: c.knownPhone || '', handle: 'Chat en vivo (izquierda)',
+    messages: st.chat.map(m => ({ from: m.from === 'user' ? 'client' : m.from, text: m.text, ts: m.ts, kind: m.kind, agent: m.agent })) };
+}
+const allConvs = () => [liveConv(), ...IB().convs];
+const metaOf = id => id === 'live' ? IB().live : IB().convs.find(c => c.id === id);
+const convOf = id => id === 'live' ? liveConv() : IB().convs.find(c => c.id === id);
+const lastTs = c => c.messages.length ? c.messages[c.messages.length - 1].ts : 0;
+const initials = n => n.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const shortTime = ts => { const d = new Date(ts); const s = ymd(d); if (s === todayStr()) return `${pad(d.getHours())}:${pad(d.getMinutes())}`; if (s === ymd(addDays(new Date(), -1))) return 'Ayer'; return dm(s); };
+const plain = t => (t || '').replace(/\*\*/g, '').replace(/\n+/g, ' ');
+function statusChip(c) {
+  let h = c.status === 'resuelto' ? '<span class="chip ok">✓ Resuelto</span>' : c.status === 'derivado' ? `<span class="chip wait">👩‍💼 ${c.botPaused ? 'Atiende una persona' : 'Derivado a humano'}</span>` : '<span class="chip booked">🤖 Bot atendiendo</span>';
+  if (c.attention) h = '<span class="chip no">⚠️ Requiere atención</span>' + h;
+  return h;
+}
+const inboxVisible = () => panelTab === 'inbox' && (!isMobile() || $('#stage').dataset.view === 'panel');
+
+function setPanelTab(t) {
+  panelTab = t;
+  $('#tabAgenda').hidden = t !== 'agenda'; $('#tabInbox').hidden = t !== 'inbox';
+  document.querySelectorAll('#ptabs button').forEach(b => b.classList.toggle('active', b.dataset.ptab === t));
+  syncMobileTabs();
+  if (t === 'inbox') { if (selConv) { const m = metaOf(selConv); if (m) { m.unread = 0; save(); } } renderInbox(); } else renderPanel();
+}
+function updateInboxBadge() {
+  if (!S().inbox) return;
+  const cs = allConvs(); const unread = cs.reduce((a, c) => a + (c.unread || 0), 0); const att = cs.some(c => c.attention);
+  [$('#inboxBadge'), $('#mobileInboxBadge')].forEach(el => { el.hidden = !unread && !att; el.textContent = unread > 9 ? '9+' : (unread || '!'); el.classList.toggle('alert', att); });
+}
+function onLiveMsg(m) {
+  if (!S().inbox) return;
+  const L = IB().live;
+  if (m.from === 'user') {
+    if (!(inboxVisible() && selConv === 'live')) L.unread = (L.unread || 0) + 1;
+    if (L.status === 'resuelto') L.status = L.botPaused ? 'derivado' : 'bot';
+    save();
+  }
+  refreshInbox('live');
+}
+function refreshInbox(id) {
+  updateInboxBadge();
+  if (!inboxVisible()) return;
+  renderIbxStats(); renderConvList();
+  if (!id || id === selConv) { renderThreadHead(); renderThreadBody(); renderCard(); }
+}
+function notifyInbox(text) {
+  if (inboxVisible() && selConv === 'live') return;
+  toast(text, { label: 'Ver', fn: () => openConv('live', true) });
+}
+
+function renderIbxStats() {
+  const cs = allConvs();
+  const open = cs.filter(c => c.status !== 'resuelto').length;
+  const att = cs.filter(c => c.attention).length;
+  const der = cs.filter(c => c.status === 'derivado').length;
+  const botOnly = cs.filter(c => c.messages.some(m => m.from === 'client') && !c.messages.some(m => m.from === 'staff') && c.status !== 'derivado' && !c.attention).length;
+  const total = cs.filter(c => c.messages.some(m => m.from === 'client')).length;
+  const chans = new Set(cs.map(c => c.channel)).size;
+  $('#ibxStats').innerHTML = [
+    ['💬 Conversaciones abiertas', open, `${cs.length} en total · ${chans} canales`],
+    ['⚠️ Requieren atención', att, att ? 'Derivadas por el bot, sin tomar' : 'Todo al día 🙌', att ? 'alert' : ''],
+    ['👩‍💼 Derivadas a humano', der, 'Las atiende tu equipo'],
+    ['🤖 Resueltas solo por el bot', `${botOnly}/${total}`, 'Sin intervención del equipo', 'hl'],
+  ].map(([k, v, sub, cls]) => `<div class="stat ${cls || ''}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${esc(sub)}</div></div>`).join('');
+}
+function renderChFilter() {
+  const opts = [['all', 'Todos']].concat(Object.keys(CHANNELS).map(k => [k, CHANNELS[k].label]));
+  $('#chFilter').innerHTML = opts.map(([k, l]) => `<button data-ch="${k}" class="${ibxFilter.ch === k ? 'active' : ''}" title="${l}" ${k !== 'all' ? `style="--c:${CHANNELS[k].color};--b:${CHANNELS[k].bg}"` : ''}>${k === 'all' ? 'Todos' : ICON[k]}</button>`).join('');
+}
+function filteredConvs() {
+  const q = norm(ibxFilter.q);
+  return allConvs().filter(c => {
+    if (ibxFilter.ch !== 'all' && c.channel !== ibxFilter.ch) return false;
+    if (ibxFilter.st === 'atencion' && !c.attention) return false;
+    if (['bot', 'derivado', 'resuelto'].includes(ibxFilter.st) && c.status !== ibxFilter.st) return false;
+    if (q && !norm(`${c.name} ${c.handle} ${c.phone} ${c.messages.map(m => m.text).join(' ')}`).includes(q)) return false;
+    return true;
+  }).sort((a, b) => (b.attention - a.attention) || (lastTs(b) - lastTs(a)));
+}
+function renderConvList() {
+  const list = filteredConvs();
+  if (!list.length) { $('#convList').innerHTML = '<div class="conv-empty">No hay conversaciones con esos filtros.</div>'; return; }
+  $('#convList').innerHTML = list.map(c => {
+    const last = [...c.messages].reverse().find(m => m.from !== 'sys') || { text: '' };
+    const who = last.from === 'bot' ? '🤖 ' : last.from === 'staff' ? 'Vos: ' : '';
+    const col = CHANNELS[c.channel];
+    return `<button class="conv ${selConv === c.id ? 'sel' : ''} ${c.attention ? 'att' : ''} ${c.unread ? 'unread' : ''}" data-conv="${c.id}">
+      <span class="cav" style="--c:${col.color};--b:${col.bg}">${esc(initials(c.name))}<i style="background:${col.color}">${ICON[c.channel]}</i></span>
+      <span class="cmain">
+        <span class="crow"><b>${esc(c.name)}</b><time>${lastTs(c) ? shortTime(lastTs(c)) : ''}</time></span>
+        <span class="cprev">${esc(who + plain(last.text))}</span>
+        <span class="crow2">${chBadge(c.channel, c.live ? ' · en vivo' : '')}${statusChip(c)}${c.unread ? `<em class="unr">${c.unread}</em>` : ''}</span>
+      </span></button>`;
+  }).join('');
+}
+function renderThreadHead() {
+  const c = selConv && convOf(selConv);
+  $('#thComposer').hidden = !c;
+  if (!c) {
+    $('#thHead').innerHTML = ''; $('#thBanner').innerHTML = '';
+    $('#thBody').innerHTML = '<div class="th-empty"><div>💬</div><b>Todas tus conversaciones en un solo lugar</b>WhatsApp, Instagram, Messenger, web y email. Elegí una conversación para ver el hilo completo.</div>';
+    $('#ibxThread').classList.remove('has-card');
+    return;
+  }
+  const col = CHANNELS[c.channel];
+  $('#thHead').innerHTML = `
+    <button class="icon-btn th-back" data-ia="back" aria-label="Volver">‹</button>
+    <span class="cav" style="--c:${col.color};--b:${col.bg}">${esc(initials(c.name))}</span>
+    <div class="th-who"><b>${esc(c.name)}</b><span>${chBadge(c.channel, c.live ? ' · en vivo' : '')} ${statusChip(c)}</span></div>
+    <div class="th-acts">
+      ${c.botPaused ? '<button class="mini" data-ia="return">🤖 Devolver al bot</button>' : '<button class="mini primary" data-ia="take">✋ Tomar conversación</button>'}
+      ${c.status === 'resuelto' ? '<button class="mini" data-ia="reopen">↺ Reabrir</button>' : '<button class="mini ok" data-ia="resolve">✓ Marcar resuelta</button>'}
+      <button class="mini th-cardbtn" data-ia="card">👤 Ficha</button>
+    </div>`;
+  let ban = '';
+  if (c.attention) ban += `<div class="ban ban-att">⚠️ <span><b>Requiere atención.</b> El bot derivó esta conversación a una persona.</span><button class="mini primary" data-ia="take">Tomar conversación</button></div>`;
+  else if (c.botPaused) ban += `<div class="ban ban-pause">⏸ <span><b>Bot en pausa:</b> está atendiendo ${esc(B().agent)}. El asistente no responde hasta que lo devuelvas.</span></div>`;
+  if (c.live) ban += `<div class="ban ban-live">🔴 <span>Es la conversación del chat ${isMobile() ? 'de la pestaña «Chat»' : 'de la izquierda'}: lo que respondas aparece ahí en tiempo real.</span></div>`;
+  $('#thBanner').innerHTML = ban;
+  $('#thInput').placeholder = composeMode === 'note' ? 'Nota interna: solo la ve tu equipo…' : c.live ? 'Respondé como recepción: aparece en el chat del cliente…' : `Respondé por ${col.label}…`;
+  $('#ibxThread').classList.toggle('has-card', showCard);
+}
+function renderThreadBody() {
+  const c = selConv && convOf(selConv); if (!c) return;
+  const items = [...c.messages, ...(c.notes || []).map(n => ({ ...n, from: n.type === 'event' ? 'event' : 'note' }))].sort((a, b) => a.ts - b.ts);
+  let html = ''; let lastDay = '';
+  items.forEach(m => {
+    const day = ymd(new Date(m.ts));
+    if (day !== lastDay) { html += `<div class="day-sep">${day === todayStr() ? 'Hoy' : dayLong(day)}</div>`; lastDay = day; }
+    const t = shortTime(m.ts).includes(':') ? shortTime(m.ts) : `${pad(new Date(m.ts).getHours())}:${pad(new Date(m.ts).getMinutes())}`;
+    if (m.from === 'sys' || m.from === 'event') { html += `<div class="im-sys">${fmt(m.text)} · ${t}</div>`; return; }
+    if (m.from === 'note') { html += `<div class="im im-note"><div class="im-h">🔒 Nota interna · ${esc(m.agent || B().agent)}</div>${fmt(m.text)}<span class="time">${t}</span></div>`; return; }
+    const label = m.from === 'client' ? esc(c.name) : m.from === 'bot' ? `🤖 ${esc(B().assistant)} (bot)${m.kind === 'reminder' ? ' · 🔔 recordatorio' : ''}` : `👩‍💼 ${esc(m.agent || B().agent)}`;
+    html += `<div class="im im-${m.from}"><div class="im-h">${label}</div>${fmt(m.text)}<span class="time">${t}</span></div>`;
+  });
+  const body = $('#thBody'); body.innerHTML = html;
+  requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+}
+function renderCard() {
+  const c = selConv && convOf(selConv); if (!c) { $('#ccard').innerHTML = ''; return; }
+  const st = S();
+  const mine = c.phone || c.name !== 'Visitante del chat' ? st.bookings.filter(x => (c.phone && samePhone(x.phone, c.phone)) || x.name === c.name) : [];
+  const upcoming = mine.filter(x => x.status === 'confirmado' && !isPast(x.date, x.time)).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const att = mine.filter(x => x.status === 'asistio').length, no = mine.filter(x => x.status === 'ausente').length, cx = mine.filter(x => x.status === 'cancelado').length;
+  const notes = (c.notes || []).filter(n => n.type !== 'event');
+  $('#ccard').innerHTML = `
+    <button class="icon-btn card-close" data-ia="card" aria-label="Cerrar ficha">✕</button>
+    <div class="cc-top"><span class="cav big" style="--c:${CHANNELS[c.channel].color};--b:${CHANNELS[c.channel].bg}">${esc(initials(c.name))}</span>
+      <b>${esc(c.name)}</b><small>${esc(B().client[0].toUpperCase() + B().client.slice(1))}${c.live ? ' · demo en vivo' : ''}</small></div>
+    <dl class="cc-dl">
+      <dt>Canal</dt><dd>${chBadge(c.channel)}</dd>
+      <dt>Contacto</dt><dd>${esc(c.handle || '—')}</dd>
+      <dt>Teléfono</dt><dd>${esc(c.phone || 'Sin dato todavía')}</dd>
+      ${mine.length ? `<dt>Historial</dt><dd>${att} asistencias · ${no} ausencias · ${cx} cancelaciones</dd>` : ''}
+    </dl>
+    <h5>Próximos turnos</h5>
+    ${upcoming.length ? upcoming.map(x => `<button class="cc-appt" data-goto-bk="${x.id}"><b>${dayChip(x.date)} · ${x.time}</b><span>${esc(service(x.service).name)}${x.extra ? ' · ' + esc(x.extra) : ''}</span>${(() => { const [ch, l] = statusInfo(x); return `<span class="chip ${ch}">${l}</span>`; })()}</button>`).join('') : '<p class="cc-empty">Sin turnos agendados.</p>'}
+    <h5>Notas internas</h5>
+    ${notes.length ? notes.map(n => `<div class="cc-note">${fmt(n.text)}<small>${esc(n.agent || B().agent)} · ${shortTime(n.ts)}</small></div>`).join('') : '<p class="cc-empty">Todavía no hay notas.</p>'}
+    <button class="mini" data-ia="notemode">🔒 Agregar nota</button>`;
+}
+function renderInbox() {
+  if (!S().inbox) return;
+  updateInboxBadge();
+  if (selConv && !convOf(selConv)) selConv = null;
+  $('#ibx').dataset.mobile = selConv && mobileThread ? 'thread' : 'list';
+  $('#tabInbox').classList.toggle('in-thread', !!(selConv && mobileThread));
+  renderChFilter(); renderIbxStats(); renderConvList(); renderThreadHead(); renderThreadBody(); renderCard();
+  document.querySelectorAll('#thMode button').forEach(b => b.classList.toggle('active', b.dataset.mode === composeMode));
+  $('#thComposer').classList.toggle('note', composeMode === 'note');
+}
+let mobileThread = false;
+function openConv(id, navigate) {
+  selConv = id; mobileThread = true; showCard = false;
+  const m = metaOf(id); if (m) { m.unread = 0; save(); }
+  if (navigate) { if (isMobile()) setView('inbox'); else setPanelTab('inbox'); }
+  renderInbox();
+}
+function addEvent(id, text) {
+  const m = metaOf(id); m.notes = m.notes || []; m.notes.push({ type: 'event', text, ts: Date.now() });
+}
+function takeConv(id) {
+  const m = metaOf(id); if (m.botPaused) return;
+  m.botPaused = true; m.attention = false; m.status = 'derivado';
+  if (id === 'live') { save(); setQuick([]); sys(`👩‍💼 ${B().agent} (recepción) se sumó a la conversación`); renderHeader(); }
+  else { m.messages.push({ from: 'sys', text: `👩‍💼 ${B().agent} tomó la conversación`, ts: Date.now() }); }
+  save(); toast(`✋ Tomaste la conversación con ${convOf(id).name}: el bot queda en pausa`);
+}
+function returnConv(id) {
+  const m = metaOf(id); m.botPaused = false; m.status = 'bot'; m.attention = false; save();
+  if (id === 'live') {
+    sys('🤖 La conversación volvió al asistente virtual'); renderHeader();
+    queue = queue.then(async () => { await say('¡Hola de nuevo! Sigo yo por acá 😊 ¿Te ayudo con algo más?'); setStep('idle', {}); setQuick(MENU()); });
+  } else addEvent(id, '🤖 Devuelta al bot');
+  save(); toast('🤖 El asistente vuelve a responder esta conversación');
+}
+function resolveConv(id) {
+  const m = metaOf(id); m.status = 'resuelto'; m.attention = false;
+  const wasPaused = m.botPaused; m.botPaused = false;
+  addEvent(id, `✓ Marcada como resuelta por ${B().agent}`); save();
+  if (id === 'live') { renderHeader(); if (wasPaused) { setStep('idle', {}); setQuick(MENU()); } }
+  toast(`✓ Conversación con ${convOf(id).name} resuelta`);
+}
+function sendStaff(id, text) {
+  const m = metaOf(id);
+  if (composeMode === 'note') { m.notes = m.notes || []; m.notes.push({ type: 'note', text, agent: B().agent, ts: Date.now() }); save(); toast('🔒 Nota interna guardada (el cliente no la ve)'); return; }
+  if (!m.botPaused) takeConv(id);
+  if (m.status === 'resuelto') m.status = 'derivado';
+  if (id === 'live') { push({ from: 'staff', text, agent: B().agent }); }
+  else {
+    m.messages.push({ from: 'staff', text, agent: B().agent, ts: Date.now() }); save();
+    if (!m.autoReplied) {
+      m.autoReplied = true; save();
+      setTimeout(() => {
+        const mm = metaOf(id); if (!mm) return;
+        mm.messages.push({ from: 'client', text: '¡Dale, muchas gracias! 🙌', ts: Date.now() });
+        if (!(inboxVisible() && selConv === id)) mm.unread = (mm.unread || 0) + 1;
+        save(); refreshInbox(id);
+      }, FAST ? 600 : 2600);
+    }
+  }
+}
+
+$('#ptabs').addEventListener('click', e => { const b = e.target.closest('[data-ptab]'); if (b) setPanelTab(b.dataset.ptab); });
+$('#chFilter').addEventListener('click', e => { const b = e.target.closest('[data-ch]'); if (!b) return; ibxFilter.ch = b.dataset.ch; renderChFilter(); renderConvList(); });
+$('#stFilter').addEventListener('change', e => { ibxFilter.st = e.target.value; renderConvList(); });
+$('#ibxSearch').addEventListener('input', e => { ibxFilter.q = e.target.value; renderConvList(); });
+$('#convList').addEventListener('click', e => { const b = e.target.closest('[data-conv]'); if (b) openConv(b.dataset.conv); });
+$('#thMode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; composeMode = b.dataset.mode; renderInbox(); $('#thInput').focus(); });
+$('#ibxThread').addEventListener('click', e => {
+  const g = e.target.closest('[data-goto-bk]');
+  if (g) { const bk = S().bookings.find(x => x.id === g.dataset.gotoBk); if (bk) { panelDate = bk.date; panelMode = 'day'; if (isMobile()) setView('panel'); else setPanelTab('agenda'); renderPanel({ flash: bk.id }); } return; }
+  const b = e.target.closest('[data-ia]'); if (!b || !selConv) return;
+  const a = b.dataset.ia;
+  if (a === 'back') { mobileThread = false; renderInbox(); return; }
+  if (a === 'card') { showCard = !showCard; $('#ibxThread').classList.toggle('has-card', showCard); return; }
+  if (a === 'notemode') { composeMode = 'note'; showCard = false; renderInbox(); $('#thInput').focus(); return; }
+  if (a === 'take') takeConv(selConv);
+  if (a === 'return') returnConv(selConv);
+  if (a === 'resolve') resolveConv(selConv);
+  if (a === 'reopen') { const m = metaOf(selConv); m.status = m.botPaused ? 'derivado' : 'bot'; addEvent(selConv, '↺ Conversación reabierta'); save(); }
+  renderInbox();
+});
+$('#thComposer').addEventListener('submit', e => {
+  e.preventDefault(); const v = $('#thInput').value.trim(); if (!v || !selConv) return;
+  $('#thInput').value = ''; sendStaff(selConv, v); renderInbox(); $('#thInput').focus();
+});
 
 /* ---------- Eventos ---------- */
 $('#composer').addEventListener('submit', e => { e.preventDefault(); const v = input.value; if (!v.trim() || typingOn) return; input.value = ''; userSays(v); });
@@ -737,19 +1083,19 @@ document.querySelectorAll('#bizSwitch button').forEach(b => b.addEventListener('
 $('#btnReminder').addEventListener('click', () => sendReminder());
 $('#btnReset').addEventListener('click', () => {
   const biz = state.biz; state = fresh(); state.biz = biz; save();
-  typingOn = false; queue = Promise.resolve(); panelDate = todayStr(); panelMode = 'day';
+  typingOn = false; queue = Promise.resolve(); panelDate = todayStr(); panelMode = 'day'; selConv = null; ibxFilter = { ch: 'all', st: 'all', q: '' }; $('#ibxSearch').value = ''; $('#stFilter').value = 'all';
   boot(); toast('↺ Demo reiniciada con datos de ejemplo');
 });
-window.addEventListener('storage', e => { if (e.key === STORE_KEY && !typingOn) { load(); renderHeader(); renderChat(); renderPanel(); } });
+window.addEventListener('storage', e => { if (e.key === STORE_KEY && !typingOn) { load(); renderHeader(); renderChat(); renderPanel(); renderInbox(); } });
 
 function switchBiz(key) {
   if (key === state.biz || typingOn) return;
-  state.biz = key; save(); panelDate = todayStr();
+  state.biz = key; save(); panelDate = todayStr(); selConv = null;
   boot();
 }
 function boot() {
   bizState(); save();
-  renderHeader(); renderChat(); renderPanel();
+  renderHeader(); renderChat(); renderPanel(); renderInbox();
   if (!S().chat.length) queue = queue.then(() => welcome(false));
 }
 
