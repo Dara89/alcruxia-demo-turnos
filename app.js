@@ -1,9 +1,9 @@
-/* Demo "Bot de turnos con recordatorios" — Alcruxia
+/* Demo "Asistente inteligente para tu negocio" — Alcruxia
    Vanilla JS, sin backend. Estado en localStorage. Todos los datos son ficticios. */
 (() => {
 'use strict';
 
-const STORE_KEY = 'alcruxia-demo-turnos-v2';
+const STORE_KEY = 'alcruxia-demo-turnos-v3';
 const FAST = new URLSearchParams(location.search).has('fast');
 const TYPE_MS = FAST ? 40 : 650;
 
@@ -97,7 +97,69 @@ const BIZ = {
     extra: null,
     names: ['Ana Ejemplo', 'Martín Prueba', 'Lucía Demo', 'Diego Ficticio', 'Sofía Muestra', 'Pablo Testeo', 'Carla Simulada', 'Joaquín Ejemplar', 'Valentina Demo'],
   },
+  contenedores: {
+    kind: 'sales', emoji: '📦', name: 'Contenedores del Sur', assistant: 'Maite', agent: 'Rodrigo', roleLabel: 'Ventas', handoffTo: 'el equipo de ventas',
+    panelTitle: 'Panel comercial', client: 'cliente', clients: 'clientes', askEmail: true, followup: true,
+    remLabel: 'Simular seguimiento de cotización', remTitle: 'Envía al chat el seguimiento automático de la última cotización',
+    quoteLabel: '📦 Cotizar contenedor', humanLabel: '👤 Hablar con un vendedor',
+    welcome: '¡Hola! 👋 Soy **Maite**, la asistente virtual de **Contenedores del Sur**.\nTe ayudo a cotizar contenedores marítimos (compra, alquiler o modificados), te cuento plazos y formas de pago y te agendo una visita al predio. ¿Qué necesitás?',
+    fallbackText: 'Perdón, no te entendí del todo 🙈 Puedo **cotizarte un contenedor**, contarte **plazos, formas de pago, financiación, garantía y permisos**, o agendarte una visita. Si preferís, te derivo con un vendedor.',
+    services: [
+      { id: 'visita', name: 'Visita al predio', dur: 60, price: 0, kw: ['visita', 'predio', 'verlo', 'ir a ver', 'pasar'] },
+      { id: 'llamada', name: 'Llamada con un vendedor', dur: 30, price: 0, kw: ['llamada', 'llamen', 'llamar', 'telefono', 'vendedor'] },
+    ],
+    step: 30,
+    schedule: { ...WEEKDAYS([['08:00', '12:00'], ['13:00', '17:00']]), 6: [['09:00', '12:00']] },
+    hours: 'Lunes a viernes de 8 a 17 h. Sábados de 9 a 12 h (predio abierto con cita).',
+    address: 'Ruta Ficticia 101 km 23, Canelones',
+    addressExtra: 'Predio con más de 150 contenedores en exhibición. Hay estacionamiento adentro del predio.',
+    payments: 'Transferencia, depósito, tarjeta de crédito y efectivo en el predio.',
+    priceNote: 'Pedí tu cotización por el chat: te la armo en un minuto.',
+    extra: null,
+    stages: [{ id: 'nuevo', label: 'Nuevo' }, { id: 'cotizado', label: 'Cotizado' }, { id: 'visita', label: 'Visita agendada' }, { id: 'ganado', label: 'Ganado' }, { id: 'perdido', label: 'Perdido' }],
+    faqs: [
+      { id: 'financ', label: '🏦 Financiación', rx: /\b(financ|cuotas|plan de pago|leasing|a plazo)/, text: '🏦 **Financiación**: hasta 12 cuotas con tarjeta de crédito, o plan propio con 40 % de entrega y el saldo en 6 o 12 cuotas en dólares (sujeto a aprobación). Para empresas también se puede hacer por leasing.' },
+      { id: 'pagos', label: '💳 Formas de pago', rx: /\b(pago|pagar|tarjeta|efectivo|transfer|debito|credito|aceptan|sena)/, text: '💳 **Formas de pago**: transferencia bancaria (en dólares o en pesos al cambio del día), depósito, tarjeta de crédito y efectivo en el predio.\nPara reservar el contenedor se paga una seña del 30 % y el saldo antes de la entrega.' },
+      { id: 'plazos', label: '🚚 Plazos de entrega', rx: /\b(plazo|demora|cuando llega|entrega|envio|flete|camion|grua|tardan)/, text: '🚚 **Plazos de entrega** (contenedores en stock): Montevideo y Canelones en 2 a 4 días hábiles; el resto del país, en 3 a 8 días.\nLos modificados llevan entre 25 y 40 días de fabricación.\nEntregamos con camión con hidrogrúa: el terreno tiene que tener un acceso firme y unos 3 m libres a los costados.' },
+      { id: 'garantia', label: '🛡️ Garantía', rx: /\b(garant|estanc|hermetic|se llueve|filtra)/, text: '🛡️ **Garantía**\n• Nuevos y one-trip: 12 meses de estanqueidad (no entra agua).\n• Usados: certificado de inspección “apto carga” y 3 meses de garantía.\n• Modificados: 12 meses en estructura, aberturas e instalaciones.' },
+      { id: 'permisos', label: '📄 Permisos', rx: /\b(permiso|habilit|intendencia|municipal|tramite|regulariz|legal)/, text: '📄 **Permisos**: para usarlo como depósito en tu terreno normalmente no hace falta trámite. Si lo vas a usar como vivienda u oficina, cada Intendencia pide su permiso o regularización.\nTe damos los planos y la memoria técnica del modificado para presentar. Consultá siempre en la Intendencia de tu departamento.' },
+    ],
+    names: ['Ana Ejemplo', 'Martín Prueba', 'Lucía Demo', 'Diego Ficticio', 'Sofía Muestra', 'Pablo Testeo', 'Carla Simulada', 'Joaquín Ejemplar', 'Valentina Demo'],
+  },
+  inmobiliaria: {
+    kind: 'sales', emoji: '🏠', name: 'Inmobiliaria Costa Este', assistant: 'Clara', agent: 'Valeria', roleLabel: 'Agente', handoffTo: 'un agente',
+    panelTitle: 'Panel de la inmobiliaria', client: 'cliente', clients: 'clientes', askEmail: false,
+    remLabel: 'Simular recordatorio de visita', remTitle: 'Envía al chat el recordatorio de la próxima visita (24 h antes)',
+    remHead: '🔔 Recordatorio de visita · 24 h antes',
+    quoteLabel: '🏠 Buscar propiedad', humanLabel: '👤 Hablar con un agente',
+    welcome: '¡Hola! 👋 Soy **Clara**, la asistente virtual de **Inmobiliaria Costa Este**.\nTe ayudo a encontrar tu próxima propiedad en Punta del Este o Montevideo, para comprar o alquilar (anual o por temporada), y te agendo la visita. ¿Qué estás buscando?',
+    fallbackText: 'Perdón, no te entendí del todo 🙈 Puedo **buscarte propiedades**, agendarte una **visita** o contarte sobre **requisitos, garantías, comisión y gastos comunes**. Si preferís, te derivo con un agente.',
+    services: [
+      { id: 'visita', name: 'Visita a la propiedad', dur: 60, price: 0, kw: ['visita', 'ver la', 'verla', 'conocer', 'recorrer'] },
+      { id: 'video', name: 'Videollamada con un agente', dur: 30, price: 0, kw: ['video', 'llamada', 'virtual', 'zoom', 'meet'] },
+    ],
+    step: 30,
+    schedule: { ...WEEKDAYS([['09:00', '13:00'], ['14:00', '19:00']]), 6: [['10:00', '14:00']] },
+    hours: 'Lunes a viernes de 9 a 19 h. Sábados de 10 a 14 h. En temporada también abrimos los domingos.',
+    address: 'Av. Inventada 900, Punta del Este · Sucursal: Calle Ejemplo 2500, Pocitos, Montevideo',
+    addressExtra: 'Las visitas se hacen en la propiedad: el agente te espera en la puerta.',
+    payments: 'Transferencia, depósito y tarjeta de crédito (temporarios).',
+    priceNote: 'Cada propiedad tiene su precio publicado en la ficha.',
+    extra: { key: 'prop', label: 'Propiedad', ask: '¿Qué propiedad te interesa? Pasame el código (por ejemplo **CE-105**) o la zona 🏠', icon: '🏠', thanks: '¡Anotado! 🏠 ' },
+    seedExtras: ['CE-304 · Playa Mansa', 'CE-101 · Península', 'CE-201 · Pocitos', 'CE-104 · La Barra', 'CE-205 · Playa Mansa', 'CE-103 · Playa Mansa', 'CE-105 · Pocitos', 'CE-202 · Punta Carretas', 'CE-302 · Península'],
+    stages: [{ id: 'nuevo', label: 'Nuevo' }, { id: 'calificado', label: 'Calificado' }, { id: 'visita', label: 'Visita' }, { id: 'oferta', label: 'Oferta' }, { id: 'cerrado', label: 'Cerrado' }],
+    faqs: [
+      { id: 'requisitos', label: '📋 Requisitos para alquilar', rx: /\b(requisit|que necesito|papeles|documentos|recibo de sueldo|ingresos)/, text: '📋 **Requisitos para alquilar** (anual): cédula de identidad, comprobante de ingresos (lo ideal es que los ingresos del hogar sean al menos 3 veces el alquiler) y una garantía.\nPara un **temporario** alcanza con cédula o pasaporte y una seña del 30 %; el saldo se paga al ingresar.' },
+      { id: 'garantias', label: '🛡️ Garantías', rx: /\b(garant|anda|cgn|contaduria|fianza|aval|deposito)/, text: '🛡️ **Garantías que aceptamos** para alquiler anual:\n• **ANDA**\n• **Contaduría General de la Nación (CGN)**, para funcionarios públicos\n• **Seguro de fianza** de una aseguradora habilitada\n• **Depósito en garantía** (habitualmente el equivalente a 3 a 5 meses de alquiler)' },
+      { id: 'comision', label: '💼 Comisión', rx: /\b(comision|honorario|cuanto cobran)/, text: '💼 **Comisión**\n• Compra: 3 % + IVA sobre el precio.\n• Alquiler anual: un mes de alquiler + IVA.\n• Temporario: ya está incluida en el precio publicado.' },
+      { id: 'gastos', label: '🏢 Gastos comunes', rx: /\b(gastos? comun|expensas|contribucion|impuesto)/, text: '🏢 **Gastos comunes**: figuran en cada ficha (en nuestra cartera van de $ 4.500 a $ 14.000 por mes, según los amenities).\nEn alquiler anual los paga el inquilino; la contribución inmobiliaria la paga el propietario. En temporario está todo incluido.' },
+    ],
+    names: ['Ana Ejemplo', 'Martín Prueba', 'Lucía Demo', 'Diego Ficticio', 'Sofía Muestra', 'Pablo Testeo', 'Carla Simulada', 'Joaquín Ejemplar', 'Valentina Demo'],
+  },
 };
+const RUBROS = { dental: 'dental', vet: 'vet', veterinaria: 'vet', pilates: 'pilates', contenedores: 'contenedores', inmobiliaria: 'inmobiliaria' };
+const rubroOf = key => key === 'vet' ? 'veterinaria' : key;
+const roleLabel = (b = B()) => b.roleLabel || 'Recepción';
 
 /* ---------- Estado ---------- */
 let state;
@@ -105,6 +167,7 @@ const fresh = () => ({ v: 1, biz: 'dental', data: {} });
 function bizState(key = state.biz) {
   if (!state.data[key]) state.data[key] = seedBiz(key);
   if (!state.data[key].inbox) state.data[key].inbox = seedInbox(key, state.data[key]);
+  if (BIZ[key].kind === 'sales' && !state.data[key].leads) state.data[key].leads = seedLeads(key, state.data[key]);
   return state.data[key];
 }
 const S = () => bizState();
@@ -112,7 +175,10 @@ const B = () => BIZ[state.biz];
 function load() {
   try { state = JSON.parse(localStorage.getItem(STORE_KEY)) || fresh(); } catch { state = fresh(); }
   if (!BIZ[state.biz]) state = fresh();
+  const r = RUBROS[norm(new URLSearchParams(location.search).get('rubro') || '')];
+  if (r && !rubroApplied) { state.biz = r; rubroApplied = true; }
 }
+let rubroApplied = false;
 function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {} }
 
 /* ---------- Agenda / disponibilidad ---------- */
@@ -160,7 +226,7 @@ function seedBiz(key) {
     if (status === 'auto') status = isPast(date, time) ? 'asistio' : 'confirmado';
     st.bookings.push({
       id: uid(), service: b.services[i % b.services.length].id, date, time,
-      name: b.names[n], phone: fmtPhone(`0990000${pad(n + 1)}`), extra: b.pets ? b.pets[n] : null,
+      name: b.names[n], phone: fmtPhone(`0990000${pad(n + 1)}`), extra: b.pets ? b.pets[n] : b.seedExtras ? b.seedExtras[n] : null,
       status, source: 'seed', reminder: reminder || (status === 'cancelado' ? 'enviado' : null),
       cancelledVia: status === 'cancelado' ? 'recordatorio' : null, createdAt: Date.now() - 86400000 * (5 - i),
     });
@@ -168,6 +234,7 @@ function seedBiz(key) {
   const s1 = slotsFor(d1, key); const bt = s1.find(t => !st.bookings.some(x => x.date === d1 && x.time === t && x.status !== 'cancelado') && toMin(t) >= 12 * 60) || s1[s1.length - 1];
   if (bt) st.blocks.push({ date: d1, time: bt, reason: 'Reunión de equipo' });
   st.inbox = seedInbox(key, st);
+  if (b.kind === 'sales') { st.leads = seedLeads(key, st); st.quoteSeq = 1041; }
   return st;
 }
 
@@ -180,9 +247,15 @@ function renderHeader() {
   document.body.dataset.biz = state.biz;
   $('#chatAvatar').textContent = b.emoji;
   $('#chatName').textContent = b.name;
-  $('#chatStatus').textContent = S().inbox?.live.botPaused ? `${b.agent} (recepción) está respondiendo` : `${b.assistant} · asistente virtual`;
+  $('#chatStatus').textContent = S().inbox?.live.botPaused ? `${b.agent} (${roleLabel(b).toLowerCase()}) está respondiendo` : `${b.assistant} · asistente virtual`;
   $('#panelTitle').textContent = b.panelTitle;
-  $('#panelSub').textContent = `${b.name} · agenda en vivo`;
+  const sales = b.kind === 'sales';
+  $('#panelSub').textContent = `${b.name} · ${sales ? 'agenda y ventas en vivo' : 'agenda en vivo'}`;
+  $('#ptabLeads').hidden = !sales; $('#mobileLeadsTab').hidden = !sales; $('#mobileTabs').classList.toggle('four', sales);
+  if (!sales && panelTab === 'leads') setPanelTab('agenda');
+  const ab = document.querySelector(`#bizSwitch button[data-biz="${state.biz}"]`); const bs = $('#bizSwitch'); if (ab && bs.scrollWidth > bs.clientWidth) bs.scrollLeft = Math.max(0, ab.offsetLeft - bs.offsetLeft - 12);
+  $('#btnReminder span').textContent = b.remLabel || 'Simular recordatorio 24 h antes';
+  $('#btnReminder').title = b.remTitle || 'Envía al chat el recordatorio del próximo turno';
   document.querySelectorAll('#bizSwitch button').forEach(x => x.classList.toggle('active', x.dataset.biz === state.biz));
 }
 
@@ -190,14 +263,24 @@ function msgHTML(m) {
   if (m.from === 'sys') return `<div class="sys">${fmt(m.text)}</div>`;
   const time = new Date(m.ts); const t = `${pad(time.getHours())}:${pad(time.getMinutes())}`;
   let inner = '';
-  if (m.kind === 'reminder') inner += `<div class="rem-head">🔔 Recordatorio automático · 24 h antes</div>`;
-  if (m.from === 'staff') inner += `<div class="agent">👩‍💼 ${esc(m.agent || 'Recepción')} · Recepción</div>`;
+  if (m.kind === 'reminder') inner += `<div class="rem-head">${B().remHead || '🔔 Recordatorio automático · 24 h antes'}</div>`;
+  if (m.kind === 'followup') inner += `<div class="rem-head">📨 Seguimiento automático de cotización</div>`;
+  if (m.kind === 'quote') inner += `<div class="rem-head">🧾 Cotización generada por el bot</div>`;
+  if (m.from === 'staff') inner += `<div class="agent">👩‍💼 ${esc(m.agent || roleLabel())} · ${roleLabel()}</div>`;
   inner += fmt(m.text);
+  if (m.cards && m.cards.length) inner += `<div class="pcards">${m.cards.map(id => propCard(prop(id))).join('')}</div>`;
   if (m.actions && m.actions.length) {
     inner += `<div class="actions ${m.used ? 'used' : ''}">` + m.actions.map(a =>
       `<button data-msg="${m.id}" data-payload="${esc(a.payload)}" class="${m.used === a.payload ? 'chosen' : ''}">${esc(a.label)}</button>`).join('') + `</div>`;
   }
-  return `<div class="msg ${m.from} ${m.kind || ''}" data-id="${m.id}">${inner}<span class="time">${t}</span></div>`;
+  return `<div class="msg ${m.from} ${m.kind || ''} ${m.cards ? 'has-cards' : ''}" data-id="${m.id}">${inner}<span class="time">${t}</span></div>`;
+}
+function propCard(p) {
+  if (!p) return '';
+  return `<div class="pcard"><div class="pimg" style="--g1:${p.g[0]};--g2:${p.g[1]}"><span class="pic">${p.icon}</span><span class="pcode">${p.id}</span><span class="pop">${OPS[p.op]}</span></div>`
+    + `<div class="pbody"><b class="pprice">${priceLabel(p)}</b><div class="ptitle">${esc(p.title)}</div>`
+    + `<div class="pfeat"><span>📍 ${p.zone}</span><span>📐 ${p.m2} m²</span><span>🛏️ ${bedsLabel(p.beds)}</span></div>`
+    + `<div class="pbtns"><button data-card="prop:visit:${p.id}" data-label="📅 Visitar ${p.id}">📅 Visitar</button><button class="sec" data-card="prop:info:${p.id}" data-label="Ver ficha ${p.id}">Ver ficha</button></div></div></div>`;
 }
 function renderChat() {
   const msgs = S().chat; let html = ''; let lastDay = '';
@@ -245,7 +328,14 @@ const sys = text => push({ from: 'sys', text });
 function setQuick(list) { S().convo.quick = list; save(); renderQuick(); }
 const setStep = (step, data) => { const c = S().convo; c.step = step; if (data !== undefined) c.data = data; save(); };
 
-const MENU = () => [
+const MENU = () => isSales() ? [
+  { label: B().quoteLabel, payload: 'intent:quote' },
+  { label: state.biz === 'contenedores' ? '📅 Agendar visita o llamada' : '📅 Agendar visita', payload: 'intent:book' },
+  { label: '🔄 Cambiar o cancelar visita', payload: 'intent:cancel', cls: 'secondary' },
+  ...B().faqs.map(f => ({ label: f.label, payload: `faq:${f.id}`, cls: 'secondary' })),
+  { label: '📍 Dirección y horarios', payload: 'faq:direccion', cls: 'secondary' },
+  { label: B().humanLabel, payload: 'intent:human', cls: 'secondary' },
+] : [
   { label: '📅 Sacar turno', payload: 'intent:book' },
   { label: '🔄 Cancelar o cambiar', payload: 'intent:cancel' },
   { label: '🕘 Horarios', payload: 'faq:horarios', cls: 'secondary' },
@@ -281,8 +371,18 @@ const RX = {
   yes: /^(si|sii+|dale|ok|okey|confirmo|confirmar|perfecto|listo|de una|claro)\b/,
   no: /^(no|nop|cambiar|otro)\b/,
 };
+const RXQ = {
+  contenedores: /\b(cotiz|contenedor|container|comprar|compra|alquil|precio|cuanto|modificad|pies|presupuesto)/,
+  inmobiliaria: /\b(propiedad|apartamento|apto|casa|alquil|comprar|venta|tempor|monoambiente|dormitorio|busco|punta del este|pocitos)/,
+};
 function detect(t) {
   if (RX.human.test(t)) return 'human';
+  if (isSales()) {
+    if (/\b(cancel|reprogram|cambiar (la|mi)? ?visita)/.test(t)) return 'cancel';
+    const f = B().faqs.find(x => x.rx.test(t)); if (f) return 'faq:' + f.id;
+    if (RXQ[state.biz].test(t)) return 'quote';
+    if (/\b(visitas?\b|visitar|agendar|coordinar|llamada|llamen)/.test(t)) return 'book';
+  }
   if (RX.cancel.test(t)) return 'cancel';
   if (RX.pagos.test(t)) return 'faq:pagos';
   if (RX.precios.test(t)) return 'faq:precios';
@@ -293,7 +393,7 @@ function detect(t) {
   if (RX.thanks.test(t)) return 'thanks';
   return null;
 }
-const isIntent = t => { const i = detect(t); return i && !['greet', 'thanks'].includes(i); };
+const isIntent = t => { const i = detect(t); return i && !['greet', 'thanks', 'quote'].includes(i); };
 
 function matchService(t) {
   const list = B().services; const n = parseInt(t, 10);
@@ -335,12 +435,30 @@ async function handle({ text, payload }) {
     case 'phone': { const ph = matchPhone(text); if (ph) return givePhone(ph); if (!isIntent(t)) return say('Mmm, ese número no me cierra 🤔 ¿Me lo pasás de nuevo? Por ejemplo: **099 123 456**'); break; }
     case 'confirm': if (RX.yes.test(t)) return confirmFlow(); if (RX.no.test(t)) return startDay(); break;
     case 'cancel_phone': { const ph = matchPhone(text); if (ph) return lookup(ph); break; }
+    case 'q_need': { const v = /alquil|rent/.test(t) ? 'alquiler' : /modific|adapt|oficina|vivienda|casa/.test(t) ? 'mod' : /compr/.test(t) ? 'compra' : null; if (v) { if (v === 'mod') { const m = matchMod(t); if (m) qd().mod = m; } return qSet('need', v); } break; }
+    case 'q_mod': { const m = matchMod(t); if (m) return qSet('mod', m); break; }
+    case 'q_size': { const v = matchSize(t); if (v) return qSet('size', v); break; }
+    case 'q_cond': { const v = matchCond(t); if (v) return qSet('cond', v); break; }
+    case 'q_qty': { const n = parseInt((t.match(/\d+/) || [])[0] || NUMW[t.split(' ')[0]], 10); if (n >= 1 && n <= 50) return qSet('qty', n); break; }
+    case 'q_dept': { const v = matchDept(t); if (v) return qSet('dept', v); break; }
+    case 'c_name': if (!isIntent(t) && /[a-zñ]{2,}/.test(t) && !/\d/.test(t)) return cName(titleCase(text)); break;
+    case 'c_phone': { const ph = matchPhone(text); if (ph) return cPhone(ph); if (!isIntent(t)) return say('Mmm, ese número no me cierra 🤔 ¿Me lo pasás de nuevo? Por ejemplo: **099 123 456**'); break; }
+    case 'c_email': { const e = text.trim().match(/[^\s@]+@[^\s@]+\.[^\s@]+/); if (e) return cEmail(e[0]); if (/^no\b|prefiero|sin (mail|email)|whatsapp/.test(t)) return cEmail(''); if (!isIntent(t)) return say('Ese email no me cierra 🤔 ¿Me lo pasás de nuevo? (o tocá “Prefiero solo WhatsApp”)'); break; }
+    case 'p_op': { const v = /tempor|verano|enero|febrero|quincena|vacacion/.test(t) ? 'temp' : /alquil|anual/.test(t) ? 'anual' : /compr|venta/.test(t) ? 'venta' : null; if (v) return pSet('op', v); break; }
+    case 'p_zone': { const p = {}; parsePropText(t, p); if (/igual|cualquier|no importa|indistinto/.test(t)) p.zone = 'any'; if (p.zone) return pSet('zone', p.zone); break; }
+    case 'p_budget': { const n = parseMoney(t); if (n) { const pp = pd(); pp.budget = [0, n]; pp.budgetLabel = `Hasta ${pp.op === 'anual' ? '$ ' + n.toLocaleString('es-UY') : usd(n)}`; save(); return nextP(); } break; }
+    case 'p_beds': { const n = /mono/.test(t) ? 0 : parseInt((t.match(/\d/) || [])[0] || NUMW[t.split(' ')[0]], 10); if (n >= 0 && n <= 9) return pSet('beds', Math.min(4, n)); break; }
+    case 'p_dates': if (!isIntent(t) && t.length >= 3) return pSet('dates', text.trim()); break;
+    case 'p_pick': { const m = t.match(/ce ?-? ?(\d{3})/); if (m && prop(`CE-${m[1]}`)) return /visit|agend|ver la|conocer/.test(t) ? propVisit(`CE-${m[1]}`) : propInfo(`CE-${m[1]}`);
+      const res = c.data?.p?.results || []; const k = /primer|\b1\b/.test(t) ? 0 : /segund|\b2\b/.test(t) ? 1 : /tercer|\b3\b/.test(t) ? 2 : -1; if (k >= 0 && res[k]) return propInfo(res[k]); break; }
+    case 'p_question': if (t.length >= 2 && !RX.human.test(t)) return propAnswer(text); break;
   }
   const intent = detect(t);
   if (intent) c.misses = 0;
   switch (intent) {
     case 'human': return human();
     case 'cancel': return startCancel();
+    case 'quote': return state.biz === 'contenedores' ? startQuote(text) : startSearch(text);
     case 'book': { const s = matchService(t); if (s) { setStep('service', { mode: 'new' }); return pickService(s); } return startBooking(); }
     case 'greet': return welcome(true);
     case 'thanks': await say('¡De nada! 😊 Cualquier cosa, escribime por acá cuando quieras.'); return setQuick(MENU());
@@ -353,13 +471,21 @@ async function handle({ text, payload }) {
   if (c.step === 'time') { await say('Ese horario no está disponible. Elegí uno de estos:'); return pickDay(c.data.date, true); }
   if (c.step === 'name') return say('¿Me decís tu nombre y apellido, así lo anoto? ✍️');
   if (c.step === 'cancel_phone') return say('Necesito el celular con el que sacaste el turno (por ejemplo **099 000 001**).');
+  if (/^(q|p)_/.test(c.step) && c.step !== 'p_pick') { await say('Perdón, no te entendí 🙈 Elegí una de las opciones o escribilo de otra forma:'); return c.step[0] === 'q' ? nextQ() : nextP(); }
+  if (c.step === 'c_name') return say('¿Me decís tu nombre y apellido? ✍️');
   return fallback();
 }
 
 async function handlePayload(p) {
   const [kind, a, b] = p.split(':');
   const st = S();
-  if (kind === 'intent') return ({ book: startBooking, cancel: startCancel, human, menu: () => welcome(true) })[a]();
+  if (kind === 'intent') return ({ book: startBooking, cancel: startCancel, human, menu: () => welcome(true), quote: () => state.biz === 'contenedores' ? startQuote() : startSearch() })[a]();
+  if (kind === 'q') return qSet(a, b);
+  if (kind === 'p') return a === 'again' ? (st.convo.data?.p?.results ? showResults() : startSearch()) : pSet(a, b);
+  if (kind === 'prop') return ({ visit: propVisit, info: propInfo, ask: propAsk, contact: propContact })[a](b);
+  if (kind === 'c') { if (a === 'name') return cName(st.convo.knownName); if (a === 'phone') return cPhone(b); if (a === 'email') return cEmail(b === 'none' ? '' : b); }
+  if (kind === 'lead') return bookForLead(a, b);
+  if (kind === 'rem' && a.startsWith('q')) return followupAnswer(a, (st.leads || []).find(x => x.id === b));
   if (kind === 'faq') return faq(a);
   if (kind === 'svc') return pickService(service(a));
   if (kind === 'day') return pickDay(a);
@@ -374,14 +500,14 @@ async function handlePayload(p) {
     if (a === 'pick') return showBooking(bk);
     if (a === 'cancel') return cancelBooking(bk, 'chat');
     if (a === 'resched') return startResched(bk);
-    if (a === 'keep') { await say(`¡Perfecto! Tu turno queda como estaba. Te esperamos ${dayPhrase(bk.date)} a las ${bk.time} 😊`); setStep('idle', {}); return setQuick(MENU()); }
+    if (a === 'keep') { await say(isSales() ? `¡Perfecto! Tu ${service(bk.service).name.toLowerCase()} queda como estaba: ${dayPhrase(bk.date)} a las ${bk.time} 😊` : `¡Perfecto! Tu turno queda como estaba. Te esperamos ${dayPhrase(bk.date)} a las ${bk.time} 😊`); setStep('idle', {}); return setQuick(MENU()); }
   }
   if (kind === 'rem') {
     if (!bk || bk.status === 'cancelado') return say('Ese turno ya no está activo.');
     if (a === 'confirm') {
       bk.status = 'confirmado'; bk.reminder = 'confirmado'; save(); renderPanel({ flash: bk.id, bump: true });
       toast(`✅ ${bk.name} confirmó su turno (${dayShort(bk.date)} ${bk.time})`);
-      await say(`¡Genial, ${first(bk.name)}! Tu turno queda **confirmado** ✅ Te esperamos ${dayPhrase(bk.date)} a las **${bk.time}**.`);
+      await say(salesConfirmText(bk) || `¡Genial, ${first(bk.name)}! Tu turno queda **confirmado** ✅ Te esperamos ${dayPhrase(bk.date)} a las **${bk.time}**.`);
       setStep('idle', {}); return setQuick(MENU());
     }
     if (a === 'cancel') return cancelBooking(bk, 'recordatorio');
@@ -394,7 +520,7 @@ async function welcome(again) {
   setStep('idle', {});
   await say(again
     ? `¡Hola de nuevo! 👋 ¿En qué te puedo ayudar?`
-    : `¡Hola! 👋 Soy **${b.assistant}**, la asistente virtual de **${b.name}**.\nTe ayudo a sacar, cambiar o cancelar tu turno en un minuto, las 24 horas. ¿Qué necesitás?`);
+    : b.welcome || `¡Hola! 👋 Soy **${b.assistant}**, la asistente virtual de **${b.name}**.\nTe ayudo a sacar, cambiar o cancelar tu turno en un minuto, las 24 horas. ¿Qué necesitás?`);
   setQuick(MENU());
 }
 async function startBooking() {
@@ -427,10 +553,15 @@ async function pickTime(tm) {
   if (!availableSlots(d.date).includes(tm)) { await say('Uy, ese horario se acaba de ocupar 😅 Elegí otro:'); return pickDay(d.date, true); }
   d.time = tm; save();
   if (d.mode === 'resched') return askConfirm();
+  const kc = S().convo; if (isSales() && kc.knownName && kc.knownPhone && (d.leadId || d.prop) && !(B().extra && !d.extra)) { d.name = kc.knownName; d.phone = kc.knownPhone; save(); return askConfirm(); }
   if (B().extra && !d.extra) { setStep('extra'); await say(B().extra.ask); return setQuick([]); }
   return askName();
 }
-async function giveExtra(v) { S().convo.data.extra = v; save(); return askName(`¡Qué lindo nombre! 🥰 `); }
+async function giveExtra(v) {
+  const m = norm(v).match(/ce ?-? ?(\d{3})/); const x = m && prop(`CE-${m[1]}`);
+  if (x) { S().convo.data.extra = `${x.id} · ${x.zone}`; S().convo.data.prop = x.id; } else S().convo.data.extra = v;
+  save(); return askName(B().extra.thanks ?? `¡Qué lindo nombre! 🥰 `);
+}
 async function askName(prefix = '') {
   const c = S().convo; setStep('name');
   await say(`${prefix}¿A nombre de quién hago la reserva? (nombre y apellido)`);
@@ -468,6 +599,16 @@ async function confirmFlow() {
   st.bookings.push(bk); c.knownName = d.name; c.knownPhone = d.phone; save();
   panelDate = bk.date; panelMode = panelMode || 'day';
   renderPanel({ flash: bk.id, bump: true });
+  if (isSales()) {
+    let L;
+    if (state.biz === 'inmobiliaria') L = upsertInmoLead({ name: d.name, phone: d.phone, x: prop(d.prop), f: d.p, stage: 'visita', visit: true, bookingId: bk.id });
+    else { L = d.leadId && (st.leads || []).find(x => x.id === d.leadId); if (!L) L = addLead({ name: d.name, phone: d.phone, stage: 'visita', value: 0, detail: `${service(d.service).name} (sin cotización todavía)` }); if (['nuevo', 'cotizado', 'perdido'].includes(L.stage)) L.stage = 'visita'; L.bookingId = bk.id; delete L.lostReason; }
+    save(); renderLeads({ flash: L.id });
+    notifyPanel(`📅 ${service(bk.service).name} agendada: ${bk.name} · ${dayShort(bk.date)} ${bk.time} (oportunidad en “${B().stages.find(s => s.id === L.stage).label}”)`);
+    const s = service(bk.service); const call = s.id !== 'visita';
+    await say(`¡Listo, ${first(d.name)}! 🎉 Quedó agendada tu **${s.name.toLowerCase()}**${bk.extra ? ` (${bk.extra})` : ''} para ${dayPhrase(d.date)} a las **${d.time}**.\n${call ? `📞 Te contactamos al ${d.phone}.` : state.biz === 'inmobiliaria' ? `📍 ${B().agent} te espera en la puerta de la propiedad.` : `📍 ${B().address}`}\n\nTe mando un recordatorio 24 h antes. Si necesitás cambiarla, escribime por acá.`);
+    setStep('idle', {}); return setQuick(MENU());
+  }
   notifyPanel(`📅 Nuevo turno desde el chat: ${bk.name} · ${dayShort(bk.date)} ${bk.time}`);
   await say(`¡Listo, ${first(d.name)}! 🎉 Tu turno quedó **confirmado** para ${dayPhrase(d.date)} a las **${d.time}**.\n📍 ${B().address}\n\nTe vamos a mandar un recordatorio 24 h antes. Si necesitás cambiarlo o cancelarlo, escribime por acá cuando quieras.`);
   setStep('idle', {}); setQuick(MENU());
@@ -516,12 +657,22 @@ async function startResched(bk) {
 
 async function faq(kind) {
   const b = B(); const c = S().convo; const inFlow = !['idle'].includes(c.step);
-  const txt = {
+  let txt = {
     horarios: `🕘 Nuestros horarios:\n${b.hours}\n\nYo, en cambio, respondo las 24 horas 😉`,
     direccion: `📍 Estamos en **${b.address}**.\n${b.addressExtra}`,
     precios: `💲 Valores de referencia:\n${b.services.map(s => `• ${s.name}: **${money(s.price)}**`).join('\n')}\n\n${b.priceNote}`,
     pagos: `💳 Formas de pago: ${b.payments}`,
   }[kind];
+  const sf = isSales() && b.faqs.find(f => f.id === kind);
+  if (isSales() && kind === 'direccion') txt = `📍 Estamos en **${b.address}**.\n${b.addressExtra}\n\n🕘 ${b.hours}`;
+  if (sf) txt = sf.text;
+  if (isSales() && kind === 'precios') return state.biz === 'contenedores' ? startQuote() : startSearch();
+  if (isSales() && /^(q|p|c)_/.test(c.step)) {
+    await say(txt); await say('¿Seguimos? 👇', { fast: true });
+    if (c.step[0] === 'q') return nextQ(); if (c.step[0] === 'p' && c.step !== 'p_pick' && c.step !== 'p_question') return nextP();
+    if (c.step === 'c_name') return say('¿Me decís tu nombre y apellido?'); if (c.step === 'c_phone') return say('¿A qué celular te podemos escribir?'); if (c.step === 'c_email') return say('¿Y un email para mandarte la cotización?');
+    return setQuick(MENU());
+  }
   await say(txt);
   if (inFlow && ['service', 'day', 'time'].includes(c.step)) {
     await say('¿Seguimos con tu reserva? 👇', { fast: true });
@@ -530,17 +681,17 @@ async function faq(kind) {
     return pickDay(c.data.date, true);
   }
   setStep('idle', {});
-  setQuick([{ label: '📅 Sacar turno', payload: 'intent:book' }, ...MENU().slice(2).filter(q => q.payload !== `faq:${kind}`)]);
+  setQuick(isSales() ? [MENU()[0], MENU()[1], ...MENU().slice(3).filter(q => q.payload !== `faq:${kind}`)] : [{ label: '📅 Sacar turno', payload: 'intent:book' }, ...MENU().slice(2).filter(q => q.payload !== `faq:${kind}`)]);
 }
 async function human(silent) {
   const st = S(); st.stats.handoffs++; st.convo.misses = 0; setStep('idle', {});
-  if (!silent) await say(`Te derivo con una persona del equipo 👩‍💼 Te van a responder por este mismo chat en horario de atención (${B().hours.split('.')[0].toLowerCase()}).\n¡Gracias por la paciencia!`);
-  sys('🔔 Conversación derivada a recepción');
+  if (!silent) await say(`Te derivo con ${isSales() ? (state.biz === 'contenedores' ? 'un vendedor' : 'un agente') : 'una persona del equipo'} 👩‍💼 Te van a responder por este mismo chat en horario de atención (${B().hours.split('.')[0].toLowerCase()}).\n¡Gracias por la paciencia!`);
+  sys(`🔔 Conversación derivada a ${B().handoffTo || 'recepción'}`);
   const L = st.inbox.live; L.status = 'derivado'; L.attention = true; save();
   renderPanel({ bump: true });
   toast('⚠️ Requiere atención: el bot derivó una conversación a una persona', { label: 'Ver', fn: () => openConv('live', true) });
   refreshInbox();
-  setQuick([{ label: '📅 Mientras tanto, sacar turno', payload: 'intent:book', cls: 'secondary' }]);
+  setQuick(isSales() ? [{ ...MENU()[0], label: 'Mientras tanto: ' + MENU()[0].label, cls: 'secondary' }] : [{ label: '📅 Mientras tanto, sacar turno', payload: 'intent:book', cls: 'secondary' }]);
 }
 async function fallback() {
   const c = S().convo; c.misses = (c.misses || 0) + 1; save();
@@ -548,18 +699,28 @@ async function fallback() {
     await say('Perdón, sigo sin entenderte bien 🙈 Para no hacerte perder tiempo, te derivo con una persona.');
     return human(true);
   }
-  await say('Perdón, no te entendí del todo 🙈 Puedo ayudarte con **turnos, horarios, dirección, precios y formas de pago**. Si preferís, te derivo con una persona.');
+  await say(B().fallbackText || 'Perdón, no te entendí del todo 🙈 Puedo ayudarte con **turnos, horarios, dirección, precios y formas de pago**. Si preferís, te derivo con una persona.');
   setQuick(MENU());
 }
 
 /* ---------- Recordatorios ---------- */
+function salesConfirmText(bk, key = state.biz) {
+  const b = BIZ[key]; if (b.kind !== 'sales') return '';
+  const sv = b.services.find(x => x.id === bk.service) || b.services[0];
+  const tail = sv.id === 'llamada' ? `Te llamamos ${dayPhrase(bk.date)} a las **${bk.time}** 📞` : sv.id === 'video' ? `Te mandamos el link ${dayPhrase(bk.date)} antes de las **${bk.time}** 💻` : `Nos vemos ${dayPhrase(bk.date)} a las **${bk.time}**${bk.extra ? ` en la ${bk.extra.split(' · ')[0]}` : ''} 🙌`;
+  return `¡Genial, ${first(bk.name)}! Tu ${sv.name.toLowerCase()} quedó **confirmada** ✅ ${tail}`;
+}
 function sendReminder(bk) {
+  if (!bk && B().followup) {
+    const L = (S().leads || []).filter(x => x.stage === 'cotizado' && !x.followup).sort((a, z) => (z.source === 'chat') - (a.source === 'chat') || z.createdAt - a.createdAt)[0];
+    if (L) return sendFollowup(L);
+  }
   if (!bk) {
     const cands = S().bookings.filter(x => x.status === 'confirmado' && !x.reminder && !isPast(x.date, x.time))
       .sort((a, b) => (b.source === 'chat') - (a.source === 'chat') || (a.source === 'chat' ? b.createdAt - a.createdAt : (a.date + a.time).localeCompare(b.date + b.time)));
     bk = cands[0];
   }
-  if (!bk) { toast('No hay turnos próximos pendientes de recordatorio.'); return; }
+  if (!bk) { toast(isSales() ? 'No hay visitas ni cotizaciones pendientes de seguimiento.' : 'No hay turnos próximos pendientes de recordatorio.'); return; }
   queue = queue.then(async () => {
     const c = S().convo; c.knownName = bk.name; c.knownPhone = bk.phone;
     bk.reminder = 'enviado'; save(); renderPanel({ flash: bk.id });
@@ -569,7 +730,7 @@ function sendReminder(bk) {
       msg: { kind: 'reminder', actions: [
         { label: '✅ Confirmo', payload: `rem:confirm:${bk.id}` },
         { label: '🔄 Reprogramar', payload: `rem:resched:${bk.id}` },
-        { label: '❌ Cancelar turno', payload: `rem:cancel:${bk.id}` },
+        { label: isSales() ? '❌ Cancelar' : '❌ Cancelar turno', payload: `rem:cancel:${bk.id}` },
       ] },
     });
     toast(`🔔 Recordatorio enviado a ${bk.name}`);
@@ -604,7 +765,7 @@ function computeStats() {
 }
 function renderStats(bump) {
   const s = computeStats();
-  const cards = [
+  const cards = isSales() ? salesCards() : [
     ['📅 Turnos de la semana', s.week, s.chat ? `${s.chat} reservados por el chat` : 'Lunes a domingo'],
     ['✅ Confirmados por recordatorio', s.confirmedByRem, `${s.noShows} ${s.noShows === 1 ? 'ausencia registrada' : 'ausencias registradas'}`],
     ['↩️ Cancelaciones', s.cancels, s.freedInTime ? `${s.freedInTime} avisadas a tiempo (lugar liberado)` : 'Esta semana'],
@@ -677,7 +838,7 @@ function renderWeek() {
 }
 const availableSlotsAll = d => slotsFor(d).filter(tm => !activeBooking(d, tm) && !blockAt(d, tm)).length;
 function renderPanel(opts = {}) {
-  renderStats(opts.bump); updateInboxBadge();
+  renderStats(opts.bump); updateInboxBadge(); updateLeadsBadge();
   document.querySelectorAll('#viewSeg button').forEach(b => b.classList.toggle('active', b.dataset.mode === panelMode));
   if (panelMode === 'day') {
     const r = rel(panelDate);
@@ -704,20 +865,433 @@ function toast(text, action) {
   setTimeout(() => el.remove(), 3800);
 }
 const isMobile = () => matchMedia('(max-width:900px)').matches;
-function notifyPanel(text) {
-  if (isMobile() && $('#stage').dataset.view === 'chat') { $('#panelDot').hidden = false; toast(text, { label: 'Ver panel', fn: () => setView('panel') }); }
+function notifyPanel(text, tab) {
+  if (isMobile() && $('#stage').dataset.view === 'chat') { $('#panelDot').hidden = false; toast(text, { label: 'Ver panel', fn: () => setView(tab || 'panel') }); }
+  else if (tab && panelTab !== tab) toast(text, { label: 'Ver', fn: () => isMobile() ? setView(tab) : setPanelTab(tab) });
   else toast(text);
 }
 function setView(v) {
   $('#stage').dataset.view = v === 'chat' ? 'chat' : 'panel';
-  if (v !== 'chat') setPanelTab(v === 'inbox' ? 'inbox' : 'agenda');
+  if (v !== 'chat') setPanelTab(v === 'inbox' ? 'inbox' : v === 'leads' ? 'leads' : 'agenda');
   syncMobileTabs();
   if (v !== 'chat') { $('#panelDot').hidden = true; document.querySelectorAll('.toast').forEach(t => t.querySelector('button') && t.remove()); }
   if (v === 'chat') scrollChat();
 }
 function syncMobileTabs() {
-  const v = $('#stage').dataset.view === 'chat' ? 'chat' : (panelTab === 'inbox' ? 'inbox' : 'panel');
+  const v = $('#stage').dataset.view === 'chat' ? 'chat' : (panelTab === 'inbox' ? 'inbox' : panelTab === 'leads' ? 'leads' : 'panel');
   document.querySelectorAll('#mobileTabs button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+}
+
+/* ---------- Ventas: contenedores e inmobiliaria ---------- */
+const isSales = (key = state.biz) => BIZ[key].kind === 'sales';
+const usd = n => 'USD ' + Math.round(n).toLocaleString('es-UY');
+const SIZES = { '20': "20' (6 m)", '40': "40' (12 m)", '40hc': "40' HC (12 m, alto)" };
+const SZ = { '20': "20'", '40': "40'", '40hc': "40' HC" };
+const COND = { nuevo: 'Nuevo', onetrip: 'One-trip', usado: 'Usado (apto carga)' };
+const MODS = { oficina: 'Oficina', vivienda: 'Vivienda', deposito: 'Depósito' };
+const PRICES = {
+  compra: { '20': { nuevo: [3900, 4400], onetrip: [3200, 3600], usado: [1900, 2400] }, '40': { nuevo: [5900, 6600], onetrip: [4600, 5200], usado: [2500, 3100] }, '40hc': { nuevo: [6300, 7000], onetrip: [5000, 5600], usado: [2800, 3400] } },
+  alquiler: { '20': [120, 150], '40': [180, 220], '40hc': [200, 240] },
+  mod: { oficina: { '20': [9500, 12500], '40': [15500, 19900], '40hc': [17000, 21500] }, vivienda: { '20': [14500, 18500], '40': [24000, 31000], '40hc': [26000, 33500] }, deposito: { '20': [5200, 6200], '40': [7600, 8900], '40hc': [8200, 9500] } },
+};
+const DEPTS = [['Montevideo', 180], ['Canelones', 250], ['Maldonado', 380], ['San José', 380], ['Colonia', 420], ['Florida', 400], ['Rocha', 450], ['Lavalleja', 420], ['Flores', 450], ['Soriano', 480], ['Durazno', 480], ['Río Negro', 520], ['Treinta y Tres', 540], ['Paysandú', 560], ['Cerro Largo', 600], ['Tacuarembó', 600], ['Salto', 620], ['Rivera', 650], ['Artigas', 690]];
+const CITIES = { 'punta del este': 'Maldonado', piriapolis: 'Maldonado', 'san carlos': 'Maldonado', 'ciudad de la costa': 'Canelones', pando: 'Canelones', 'las piedras': 'Canelones', atlantida: 'Canelones', carmelo: 'Colonia', 'sarandi grande': 'Florida', 'la paloma': 'Rocha', 'fray bentos': 'Río Negro', mercedes: 'Soriano', minas: 'Lavalleja', trinidad: 'Flores', melo: 'Cerro Largo' };
+const plazoFor = cost => cost <= 250 ? '2 a 4 días hábiles' : cost <= 450 ? '3 a 6 días hábiles' : '5 a 8 días hábiles';
+function matchDept(t) {
+  const c = Object.keys(CITIES).find(k => t.includes(k)); if (c) return CITIES[c];
+  const d = DEPTS.find(([n]) => t.includes(norm(n))); return d ? d[0] : null;
+}
+const matchMod = t => /oficina|escritorio/.test(t) ? 'oficina' : /vivienda|casa|habitab|vivir/.test(t) ? 'vivienda' : /deposito|galpon|guardar/.test(t) ? 'deposito' : null;
+const matchSize = t => /\bhc\b|high|alto/.test(t) ? '40hc' : /\b40\b/.test(t) ? '40' : /\b20\b/.test(t) ? '20' : null;
+const matchCond = t => /one ?trip|un (solo )?viaje|1 viaje/.test(t) ? 'onetrip' : /\bnuev/.test(t) ? 'nuevo' : /usad|segunda mano/.test(t) ? 'usado' : null;
+const NUMW = { un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6 };
+
+function computeQuote(q) {
+  const fl = (DEPTS.find(d => d[0] === q.dept) || DEPTS[0])[1]; const n = q.qty || 1;
+  if (q.need === 'alquiler') {
+    const u = PRICES.alquiler[q.size]; const flete = fl * 2;
+    return {
+      desc: `${n} × ${SZ[q.size]} en alquiler · ${q.dept}`, value: Math.round((u[0] + u[1]) / 2 * 6 * n + flete * n),
+      lines: [`📦 **${n} × Contenedor ${SIZES[q.size]}** · alquiler`, `💲 ${usd(u[0])} a ${usd(u[1])} por mes c/u (mínimo 3 meses)`, `🚚 Flete ida y vuelta a ${q.dept}: ${usd(flete)} c/u · entrega en ${plazoFor(fl)}`, `**Total estimado: ${usd(u[0] * n)} a ${usd(u[1] * n)} por mes** + ${usd(flete * n)} de flete`],
+    };
+  }
+  const u = q.need === 'mod' ? PRICES.mod[q.mod][q.size] : PRICES.compra[q.size][q.cond];
+  const tot = [(u[0] + fl) * n, (u[1] + fl) * n];
+  const what = q.need === 'mod' ? `${MODS[q.mod]} modificad${q.mod === 'deposito' ? 'o' : 'a'} ${SIZES[q.size]}` : `Contenedor ${SIZES[q.size]} · ${COND[q.cond]}`;
+  return {
+    desc: q.need === 'mod' ? `${n} × ${MODS[q.mod]} modificad${q.mod === 'deposito' ? 'o' : 'a'} ${SZ[q.size]} · ${q.dept}` : `${n} × ${SZ[q.size]} ${COND[q.cond].split(' ')[0].toLowerCase()} · ${q.dept}`,
+    value: Math.round((tot[0] + tot[1]) / 2),
+    lines: [`📦 **${n} × ${what}**`, `💲 ${usd(u[0])} a ${usd(u[1])} c/u`, `🚚 Envío a ${q.dept}: ${usd(fl)} c/u · ${q.need === 'mod' ? `fabricación 25 a 40 días + entrega en ${plazoFor(fl)}` : `entrega en ${plazoFor(fl)}`}`, `**Total estimado: ${usd(tot[0])} a ${usd(tot[1])}** (IVA incluido)`],
+  };
+}
+
+const qd = () => { const c = S().convo; c.data = c.data || {}; c.data.q = c.data.q || {}; return c.data.q; };
+function parseQuoteText(t, q) {
+  if (!q.need) { if (/alquil|rent/.test(t)) q.need = 'alquiler'; else if (/modific|adaptad|oficina|vivienda/.test(t)) q.need = 'mod'; else if (/compr/.test(t)) q.need = 'compra'; }
+  if (q.need === 'mod' && !q.mod) q.mod = matchMod(t);
+  if (!q.size) q.size = matchSize(t);
+  if (!q.cond && q.need === 'compra') q.cond = matchCond(t);
+  const m = t.match(/\b(\d{1,2})\s*(contenedores|containers|unidades)/); if (m && !q.qty) q.qty = +m[1];
+  if (!q.dept) q.dept = matchDept(t);
+  Object.keys(q).forEach(k => q[k] == null && delete q[k]);
+}
+async function startQuote(text) {
+  setStep('q_need', { q: {} });
+  const q = qd(); if (text) parseQuoteText(norm(text), q); save();
+  await say('¡Genial! Te armo una cotización en un minuto 📦');
+  return nextQ();
+}
+async function nextQ() {
+  const q = qd(); save();
+  if (!q.need) { setStep('q_need'); await say('¿Qué estás buscando?', { fast: true }); return setQuick([{ label: '🛒 Comprar', payload: 'q:need:compra' }, { label: '📆 Alquilar', payload: 'q:need:alquiler' }, { label: '🏗️ Contenedor modificado', payload: 'q:need:mod' }]); }
+  if (q.need === 'mod' && !q.mod) { setStep('q_mod'); await say('¿Para qué lo vas a usar? Lo entregamos listo, con aislación, aberturas e instalación eléctrica 🔌'); return setQuick(Object.entries(MODS).map(([k, v]) => ({ label: { oficina: '💼 ', vivienda: '🛏️ ', deposito: '📦 ' }[k] + v, payload: `q:mod:${k}` }))); }
+  if (!q.size) { setStep('q_size'); await say("¿Qué tamaño necesitás?\n• **20'**: 6 m de largo, unos 15 m²\n• **40'**: 12 m de largo, unos 30 m²\n• **40' HC** (High Cube): 12 m y 30 cm más alto"); return setQuick(Object.entries(SIZES).map(([k, v]) => ({ label: v, payload: `q:size:${k}` }))); }
+  if (q.need === 'compra' && !q.cond) { setStep('q_cond'); await say('¿En qué estado lo preferís?\n• **Nuevo**: de fábrica, sin uso\n• **One-trip**: hizo un solo viaje, prácticamente nuevo\n• **Usado**: apto carga, con detalles estéticos (el más económico)'); return setQuick(Object.entries(COND).map(([k, v]) => ({ label: v, payload: `q:cond:${k}` }))); }
+  if (!q.qty) { setStep('q_qty'); await say('¿Cuántos necesitás?'); return setQuick([1, 2, 3, 4].map(n => ({ label: String(n), payload: `q:qty:${n}`, cls: 'time' })).concat([{ label: '5 o más', payload: 'q:qty:5', cls: 'secondary' }])); }
+  if (!q.dept) return askDept();
+  return showEstimate();
+}
+async function askDept(more) {
+  setStep('q_dept');
+  if (!more) await say('¿A qué departamento o ciudad lo enviamos? 🚚 (podés escribirlo, por ejemplo “Punta del Este”)');
+  const list = more ? DEPTS.slice(8) : DEPTS.slice(0, 8);
+  setQuick(list.map(([n]) => ({ label: n, payload: `q:dept:${n}` })).concat(more ? [] : [{ label: 'Otro departamento', payload: 'q:dept:_more', cls: 'secondary' }]));
+}
+async function qSet(field, v) {
+  const q = qd();
+  if (field === 'dept' && v === '_more') return askDept(true);
+  q[field] = field === 'qty' ? +v : v;
+  if (field === 'need' && v !== 'compra') delete q.cond;
+  save(); return nextQ();
+}
+async function showEstimate() {
+  const r = computeQuote(qd());
+  await say(`Esta es tu estimación 👇\n${r.lines.join('\n')}\n\nValores de referencia en dólares. El precio final lo confirma un vendedor según el stock.`);
+  return askContact('quote');
+}
+
+/* Captura de contacto (común) */
+async function askContact(after) {
+  const c = S().convo; c.data.after = after; setStep('c_name');
+  await say(after === 'quote' ? 'Para mandarte la cotización formal con número, ¿me decís tu nombre y apellido?' : '¡Buenísimo! Para que te contacte un agente, ¿me decís tu nombre y apellido?', { fast: true });
+  setQuick(c.knownName ? [{ label: c.knownName, payload: 'c:name' }] : []);
+}
+async function cName(n) {
+  const c = S().convo; c.data.name = n; setStep('c_phone');
+  await say(`Gracias, ${first(n)} 🙌 ¿A qué celular te podemos escribir?`);
+  setQuick(c.knownPhone ? [{ label: c.knownPhone, payload: `c:phone:${digits(c.knownPhone)}` }] : []);
+}
+async function cPhone(ph) {
+  const c = S().convo; c.data.phone = fmtPhone(digits(ph)); c.knownName = c.data.name; c.knownPhone = c.data.phone; save();
+  if (B().askEmail && c.data.after === 'quote') {
+    setStep('c_email'); await say('¿Y un email para mandarte el PDF de la cotización? 📧');
+    return setQuick([{ label: 'Prefiero solo WhatsApp', payload: 'c:email:none', cls: 'secondary' }]);
+  }
+  return afterContact();
+}
+async function cEmail(e) { S().convo.data.email = e || ''; save(); return afterContact(); }
+async function afterContact() { const d = S().convo.data; return d.after === 'quote' ? createQuote() : inmoContact(); }
+
+function addLead(l) {
+  const st = S(); st.leads = st.leads || [];
+  const lead = { id: uid(), email: '', channel: 'whatsapp', source: 'chat', createdAt: Date.now(), ...l };
+  st.leads.push(lead); save(); return lead;
+}
+async function createQuote() {
+  const st = S(); const d = st.convo.data; const r = computeQuote(d.q);
+  st.quoteSeq = (st.quoteSeq || 1041) + 1; const no = `COT-${st.quoteSeq}`;
+  const lead = addLead({ name: d.name, phone: d.phone, email: d.email || '', stage: 'cotizado', value: r.value, quoteNo: no, detail: r.desc, followup: null });
+  renderPanel({ bump: true }); renderLeads({ flash: lead.id });
+  notifyPanel(`🧾 Nueva cotización ${no} · ${lead.name} · ${usd(r.value)}`, 'leads');
+  await say(`**Cotización ${no}**\n👤 ${d.name} · ${d.phone}${d.email ? ` · ${d.email}` : ''}\n${r.lines.join('\n')}\n📅 Válida hasta el ${dm(ymd(addDays(new Date(), 7)))}\n\nTe la mandamos también ${d.email ? 'por email' : 'por WhatsApp'} en PDF 📎`, { msg: { kind: 'quote' } });
+  await say('¿Querés ver el contenedor antes de decidir? Te reservo una visita al predio o te llama un vendedor 👇', { fast: true });
+  setStep('idle', { leadId: lead.id });
+  setQuick([{ label: '🏗️ Visitar el predio', payload: `lead:visita:${lead.id}` }, { label: '📞 Que me llame un vendedor', payload: `lead:llamada:${lead.id}` }, { label: '✅ Listo, gracias', payload: 'intent:menu', cls: 'secondary' }]);
+}
+async function bookForLead(svc, leadId) {
+  setStep('day', { mode: 'new', service: svc, leadId });
+  const intro = svc === 'llamada' ? '¡Perfecto! 📞 ¿Qué día te viene bien que te llame un vendedor?' : svc === 'video' ? '¡Dale! 💻 ¿Qué día te queda bien la videollamada?' : `¡Dale! ${B().emoji} ¿Qué día querés venir? Estos son los próximos días con lugar:`;
+  return startDay(false, intro);
+}
+function sendFollowup(L) {
+  queue = queue.then(async () => {
+    const c = S().convo; c.knownName = L.name; c.knownPhone = L.phone; L.followup = 'enviado'; save(); renderLeads({ flash: L.id });
+    sys(`Simulación: seguimiento automático enviado a ${L.name} (${L.phone}) · 48 h después de la cotización`);
+    setQuick([]);
+    await say(`Hola ${first(L.name)} 👋 Soy ${B().assistant}, de ${B().name}. ¿Pudiste ver la cotización **${L.quoteNo}** (${L.detail})?\n\nSi querés, te reservo un lugar para ver el contenedor en el predio, o te llama un vendedor para ajustar los números 🙂`, {
+      msg: { kind: 'followup', actions: [
+        { label: '📅 Agendar visita al predio', payload: `rem:qvisit:${L.id}` },
+        { label: '💬 Tengo una consulta', payload: `rem:qhuman:${L.id}` },
+        { label: '🙅 Por ahora no', payload: `rem:qlost:${L.id}` },
+      ] },
+    });
+    toast(`📨 Seguimiento enviado a ${L.name} (${L.quoteNo})`);
+  });
+  setView('chat');
+}
+async function followupAnswer(a, L) {
+  if (!L) return say('No encontré esa cotización 🤔');
+  if (a === 'qvisit') { L.followup = 'respondió'; save(); renderLeads(); return bookForLead('visita', L.id); }
+  if (a === 'qhuman') { L.followup = 'respondió'; save(); renderLeads(); return human(); }
+  if (a === 'qlost') {
+    L.followup = 'respondió'; L.stage = 'perdido'; L.lostReason = 'Respondió “por ahora no” al seguimiento'; save();
+    renderPanel({ bump: true }); renderLeads({ flash: L.id }); notifyPanel(`✗ ${L.name} descartó la cotización ${L.quoteNo}`, 'leads');
+    await say(`¡Gracias por avisarnos, ${first(L.name)}! 🙌 Dejo la cotización archivada. Si más adelante la necesitás, escribime y te la actualizo.`);
+    setStep('idle', {}); return setQuick(MENU());
+  }
+}
+
+/* Inmobiliaria */
+const OPS = { venta: 'Venta', anual: 'Alquiler anual', temp: 'Temporario' };
+const ZONES = { pde: ['Península', 'Playa Brava', 'Playa Mansa', 'La Barra', 'Manantiales', 'Pinares'], mvd: ['Pocitos', 'Punta Carretas', 'Carrasco', 'Cordón'] };
+const ZONE_OPTS = [['pde', 'Punta del Este (todas)'], ['Península', 'Península'], ['Playa Brava', 'Playa Brava'], ['Playa Mansa', 'Playa Mansa'], ['La Barra', 'La Barra / Manantiales'], ['mvd', 'Montevideo (todas)'], ['Pocitos', 'Pocitos'], ['Punta Carretas', 'Punta Carretas'], ['Carrasco', 'Carrasco'], ['any', 'Me da igual']];
+const zonesOf = z => z === 'pde' ? ZONES.pde : z === 'mvd' ? ZONES.mvd : z === 'La Barra' ? ['La Barra', 'Manantiales'] : z === 'any' || !z ? [...ZONES.pde, ...ZONES.mvd] : [z];
+const zoneLabel = z => (ZONE_OPTS.find(o => o[0] === z) || [, z])[1];
+const cityOf = zone => ZONES.mvd.includes(zone) ? 'Montevideo' : 'Punta del Este';
+const BUDGETS = {
+  venta: [[0, 150000, 'Hasta USD 150.000'], [150000, 300000, 'USD 150.000 a 300.000'], [300000, 600000, 'USD 300.000 a 600.000'], [600000, 1e9, 'Más de USD 600.000']],
+  anual: [[0, 30000, 'Hasta $ 30.000 por mes'], [30000, 50000, '$ 30.000 a 50.000'], [50000, 80000, '$ 50.000 a 80.000'], [80000, 1e9, 'Más de $ 80.000']],
+  temp: [[0, 120, 'Hasta USD 120 por noche'], [120, 250, 'USD 120 a 250 por noche'], [250, 1e9, 'Más de USD 250 por noche']],
+};
+const DATES = ['Navidad y Año Nuevo (20/12 al 5/1)', '1ª quincena de enero', '2ª quincena de enero', 'Febrero / Carnaval', 'Semana de Turismo'];
+const P = (id, op, zone, title, beds, baths, m2, price, gc, extras, pets, garage, g, icon) => ({ id, op, zone, title, beds, baths, m2, price, gc, extras, pets, garage, g, icon });
+const PROPS = [
+  P('CE-101', 'venta', 'Península', 'Apartamento con vista al puerto', 2, 2, 78, 245000, 9500, 'Balcón al puerto, a 2 cuadras de la playa, ascensor', true, false, ['#0EA5E9', '#1E3A8A'], '🏢'),
+  P('CE-102', 'venta', 'Playa Brava', 'Torre frente al mar con amenities', 2, 2, 95, 380000, 14000, 'Piscina climatizada, gimnasio, seguridad 24 h', false, true, ['#06B6D4', '#0F766E'], '🏙️'),
+  P('CE-103', 'venta', 'Playa Mansa', 'Luminoso 1 dormitorio, parada 5', 1, 1, 52, 168000, 6500, 'Vista lateral al mar, barbacoa en el edificio', true, true, ['#F59E0B', '#EA580C'], '🏢'),
+  P('CE-104', 'venta', 'La Barra', 'Casa entre pinos con piscina', 3, 3, 180, 520000, 0, 'Terreno de 900 m², piscina, parrillero', true, true, ['#22C55E', '#166534'], '🏡'),
+  P('CE-105', 'venta', 'Pocitos', 'A una cuadra de la rambla', 2, 1, 70, 210000, 7800, 'Muy luminoso, cocina integrada, portería', true, false, ['#818CF8', '#4338CA'], '🏢'),
+  P('CE-106', 'venta', 'Punta Carretas', 'Penthouse con terraza', 3, 2, 140, 640000, 12500, 'Terraza de 60 m² con parrillero, 2 garajes', true, true, ['#F472B6', '#9D174D'], '🌇'),
+  P('CE-107', 'venta', 'Cordón', 'Monoambiente ideal inversión', 0, 1, 36, 98000, 4500, 'A estrenar, cerca de facultades, renta asegurada', false, false, ['#A3A3A3', '#404040'], '🏢'),
+  P('CE-108', 'venta', 'Carrasco', 'Casa con jardín y barbacoa', 4, 3, 260, 790000, 0, 'Jardín, barbacoa cerrada, a 4 cuadras de la playa', true, true, ['#84CC16', '#3F6212'], '🏡'),
+  P('CE-201', 'anual', 'Pocitos', '2 dormitorios con balcón', 2, 1, 68, 42000, 8200, 'Balcón al frente, calefacción, portería', true, false, ['#6366F1', '#312E81'], '🏢'),
+  P('CE-202', 'anual', 'Punta Carretas', '1 dormitorio cerca del shopping', 1, 1, 48, 33000, 6000, 'Amenities con gimnasio y laundry', false, false, ['#EC4899', '#831843'], '🏢'),
+  P('CE-203', 'anual', 'Cordón', '1 dormitorio reciclado', 1, 1, 45, 24000, 4500, 'Reciclado a nuevo, cerca de todo', true, false, ['#F97316', '#7C2D12'], '🏢'),
+  P('CE-204', 'anual', 'Carrasco', 'Casa 3 dormitorios con fondo', 3, 2, 150, 85000, 0, 'Fondo con parrillero, garaje para 2 autos', true, true, ['#10B981', '#065F46'], '🏡'),
+  P('CE-205', 'anual', 'Playa Mansa', '2 dormitorios todo el año', 2, 2, 80, 38000, 9000, 'Equipado, piscina en el edificio', true, true, ['#38BDF8', '#075985'], '🏢'),
+  P('CE-206', 'anual', 'Península', '1 dormitorio frente al puerto', 1, 1, 55, 28000, 5200, 'Vista al puerto, a pasos de todo', false, false, ['#22D3EE', '#155E75'], '🏢'),
+  P('CE-301', 'temp', 'Playa Brava', 'Frente al mar con amenities', 2, 2, 90, 220, 0, 'Piscina, gimnasio, servicio de playa', false, true, ['#0EA5E9', '#0C4A6E'], '🌊'),
+  P('CE-302', 'temp', 'Península', 'Monoambiente a pasos del puerto', 1, 1, 50, 110, 0, 'Wifi, aire acondicionado, ropa de cama', true, false, ['#FB923C', '#9A3412'], '🏢'),
+  P('CE-303', 'temp', 'La Barra', 'Casa con piscina y parrillero', 3, 2, 160, 380, 0, 'Piscina, parrillero, a 5 cuadras de la playa', true, true, ['#4ADE80', '#14532D'], '🏡'),
+  P('CE-304', 'temp', 'Playa Mansa', '2 dormitorios con vista al mar', 2, 2, 75, 160, 0, 'Vista al mar, garaje, piscina', true, true, ['#60A5FA', '#1E40AF'], '🏢'),
+  P('CE-305', 'temp', 'Manantiales', 'Casa de diseño frente a la playa', 4, 4, 240, 650, 0, 'Piscina infinita, vista al mar, servicio de limpieza', true, true, ['#FBBF24', '#92400E'], '🏖️'),
+  P('CE-306', 'temp', 'Pinares', 'Dúplex entre pinos', 2, 1, 70, 95, 0, 'Parrillero, a 3 cuadras de la playa', true, true, ['#34D399', '#064E3B'], '🌲'),
+];
+const prop = id => PROPS.find(p => p.id === id);
+const priceLabel = p => p.op === 'venta' ? usd(p.price) : p.op === 'anual' ? `$ ${p.price.toLocaleString('es-UY')}/mes` : `${usd(p.price)}/noche`;
+const propValue = p => p.op === 'venta' ? p.price : p.op === 'anual' ? Math.round(p.price * 12 / 40) : p.price * 14;
+const bedsLabel = n => n === 0 ? 'Monoambiente' : `${n} dorm.`;
+const TEMP = { hot: '🔥 Caliente', warm: '🌤️ Tibio', cold: '❄️ Frío' };
+function qualify(f, opts = {}) {
+  let s = 0; f = f || {};
+  if (f.budget) s++; if (f.beds != null) s++; if (f.dates) s++; if (opts.contact) s++; if (opts.visit) s += 2;
+  return s >= 4 ? 'hot' : s >= 2 ? 'warm' : 'cold';
+}
+const pd = () => { const c = S().convo; c.data = c.data || {}; c.data.p = c.data.p || {}; return c.data.p; };
+function parseMoney(t) {
+  const m = t.match(/(\d[\d.]*)\s*(mil|k)?/); if (!m) return null;
+  let n = +m[1].replace(/\./g, ''); if (m[2]) n *= 1000; return n || null;
+}
+function parsePropText(t, p) {
+  if (!p.op) { if (/tempor|verano|enero|febrero|quincena|vacacion|carnaval|semana de turismo/.test(t)) p.op = 'temp'; else if (/alquil|arrend/.test(t)) p.op = 'anual'; else if (/compr|venta|invertir/.test(t)) p.op = 'venta'; }
+  if (!p.zone) { const z = ZONE_OPTS.find(([k, l]) => !['pde', 'mvd', 'any'].includes(k) && t.includes(norm(k))); p.zone = z ? z[0] : /manantiales/.test(t) ? 'La Barra' : /punta del este|\bpunta\b/.test(t) ? 'pde' : /montevideo/.test(t) ? 'mvd' : undefined; }
+  if (p.beds == null) { if (/monoambiente/.test(t)) p.beds = 0; else { const m = t.match(/\b(\d)\s*(dorm|habitac|cuarto)/); if (m) p.beds = Math.min(4, +m[1]); } }
+  Object.keys(p).forEach(k => p[k] === undefined && delete p[k]);
+}
+async function startSearch(text) {
+  setStep('p_op', { p: {} });
+  const p = pd(); if (text) parsePropText(norm(text), p); save();
+  await say('¡Dale! Te busco opciones en un minuto 🏠');
+  return nextP();
+}
+async function nextP() {
+  const p = pd(); save();
+  if (!p.op) { setStep('p_op'); await say('¿Qué estás buscando?', { fast: true }); return setQuick([{ label: '🔑 Comprar', payload: 'p:op:venta' }, { label: '📆 Alquiler anual', payload: 'p:op:anual' }, { label: '☀️ Alquiler temporario', payload: 'p:op:temp' }]); }
+  if (!p.zone) { setStep('p_zone'); await say(`¿En qué zona? Trabajamos en **Punta del Este** y **Montevideo**.`); return setQuick(ZONE_OPTS.filter(([k]) => p.op !== 'temp' || !ZONES.mvd.includes(k) && k !== 'mvd').map(([k, l]) => ({ label: l, payload: `p:zone:${k}`, cls: k === 'any' ? 'secondary' : '' }))); }
+  if (!p.budget) { setStep('p_budget'); await say(p.op === 'venta' ? '¿Cuál es tu presupuesto aproximado? 💲' : p.op === 'anual' ? '¿Hasta cuánto querés pagar de alquiler por mes? 💲' : '¿Cuál es tu presupuesto por noche? 💲'); return setQuick(BUDGETS[p.op].map((b, i) => ({ label: b[2], payload: `p:budget:${i}` }))); }
+  if (p.beds == null) { setStep('p_beds'); await say('¿Cuántos dormitorios necesitás? 🛏️'); return setQuick([['Monoambiente', 0], ['1', 1], ['2', 2], ['3', 3], ['4 o más', 4]].map(([l, n]) => ({ label: l, payload: `p:beds:${n}` }))); }
+  if (p.op === 'temp' && !p.dates) { setStep('p_dates'); await say('¿Para qué fechas? 📅 (elegí una o escribí las tuyas, por ejemplo “del 3 al 17 de enero”)'); return setQuick(DATES.map((d, i) => ({ label: d, payload: `p:dates:${i}` }))); }
+  return showResults();
+}
+async function pSet(field, v) {
+  const p = pd();
+  if (field === 'budget') { const b = BUDGETS[p.op][+v]; p.budget = [b[0], b[1]]; p.budgetLabel = b[2]; }
+  else if (field === 'beds') p.beds = +v;
+  else if (field === 'dates') p.dates = DATES[+v] || v;
+  else { p[field] = v; if (field === 'op') { delete p.budget; delete p.budgetLabel; if (v !== 'temp') delete p.dates; if (v === 'temp' && ZONES.mvd.includes(p.zone)) delete p.zone; } }
+  save(); return nextP();
+}
+function searchProps(f) {
+  const zs = zonesOf(f.zone); const [mn, mx] = f.budget || [0, 1e12];
+  const sc = PROPS.filter(x => x.op === f.op).map(x => {
+    const zm = zs.includes(x.zone); const bm = x.price <= mx && x.price >= mn * 0.85; let s = 0;
+    if (zm) s += 3; if (bm) s += 3; else if (x.price <= mx * 1.15) s += 1;
+    if (f.beds != null) { if (x.beds === f.beds || (f.beds >= 4 && x.beds >= 4)) s += 2; else if (Math.abs(x.beds - f.beds) === 1) s += 1; }
+    return { x, s, exact: zm && bm };
+  }).sort((a, b) => b.s - a.s || a.x.price - b.x.price);
+  return { list: sc.slice(0, 3).map(o => o.x), exact: !!sc[0]?.exact };
+}
+async function showResults() {
+  const p = pd(); const r = searchProps(p); p.results = r.list.map(x => x.id); save();
+  const sum = `${OPS[p.op]} · ${zoneLabel(p.zone)} · ${p.budgetLabel || 'sin tope'} · ${p.beds === 0 ? 'monoambiente' : (p.beds >= 4 ? '4+' : p.beds) + ' dorm.'}${p.dates ? ' · ' + p.dates : ''}`;
+  await say(`${r.exact ? 'Encontré estas propiedades para vos' : 'No encontré algo exacto, pero estas opciones se acercan mucho'} 👇\n🔎 ${sum}`, { msg: { cards: p.results } });
+  setStep('p_pick');
+  await say('Tocá **Visitar** para agendar una visita o **Ver ficha** para más detalles. También podés escribirme el código (ej. ' + p.results[0] + ').', { fast: true });
+  setQuick([{ label: '🔎 Cambiar la búsqueda', payload: 'intent:quote', cls: 'secondary' }, { label: B().humanLabel, payload: 'intent:human', cls: 'secondary' }]);
+}
+async function propInfo(id) {
+  const x = prop(id); if (!x) return say('No encontré esa propiedad 🤔');
+  const c = S().convo; c.data = { ...(c.data || {}), prop: id }; setStep('p_pick');
+  await say(`🏠 **${x.title}** (${x.id})\n📍 ${x.zone}, ${cityOf(x.zone)} · ${x.m2} m² · ${bedsLabel(x.beds)} · ${x.baths} ${x.baths === 1 ? 'baño' : 'baños'}\n💲 **${priceLabel(x)}**${x.gc ? ` · gastos comunes $ ${x.gc.toLocaleString('es-UY')}` : ''}\n✨ ${x.extras}\n🐾 ${x.pets ? 'Acepta mascotas' : 'No acepta mascotas'} · 🚗 ${x.garage ? 'Con garaje' : 'Sin garaje'}`);
+  setQuick([{ label: '📅 Agendar visita', payload: `prop:visit:${id}` }, { label: '❓ Hacer una pregunta', payload: `prop:ask:${id}` }, { label: '📲 Que me contacte un agente', payload: `prop:contact:${id}`, cls: 'secondary' }, { label: '🔎 Ver otras', payload: 'p:again:1', cls: 'secondary' }]);
+}
+async function propAsk(id) {
+  const c = S().convo; c.data = { ...(c.data || {}), prop: id }; setStep('p_question');
+  await say(`Dale, ¿qué querés saber de la ${id}? (mascotas, garaje, gastos comunes, si se puede negociar…)`); setQuick([]);
+}
+async function propAnswer(text) {
+  const t = norm(text); const c = S().convo; const x = prop(c.data.prop) || PROPS[0];
+  let a;
+  if (/mascota|perro|gato/.test(t)) a = x.pets ? `Sí 🐾 La ${x.id} acepta mascotas.` : `La ${x.id} no acepta mascotas 😕 Si querés, te busco otras opciones que sí.`;
+  else if (/garaje|garage|cochera|auto|estacion/.test(t)) a = x.garage ? `Sí 🚗 La ${x.id} tiene garaje.` : `La ${x.id} no tiene garaje, pero hay estacionamiento en la zona.`;
+  else if (/gasto|expensa/.test(t)) a = x.gc ? `Los gastos comunes de la ${x.id} son de **$ ${x.gc.toLocaleString('es-UY')}** por mes.` : `La ${x.id} no tiene gastos comunes${x.op === 'temp' ? ': en temporario está todo incluido' : ' (es una casa)'}.`;
+  else if (/negoci|rebaj|descuento|oferta/.test(t)) a = `El precio publicado es **${priceLabel(x)}**. Las ofertas se presentan por escrito y el propietario las evalúa; ${B().agent} te puede orientar.`;
+  else if (/disponib|libre|sigue/.test(t)) a = `Sí, la ${x.id} sigue disponible ✅`;
+  else a = `Buena pregunta 🙌 Se la paso a ${B().agent}, nuestra agente, que conoce la propiedad y te responde en el día.`;
+  await say(a);
+  setStep('p_pick');
+  setQuick([{ label: '📅 Agendar visita', payload: `prop:visit:${x.id}` }, { label: '📲 Que me contacte un agente', payload: `prop:contact:${x.id}`, cls: 'secondary' }, { label: '🔎 Ver otras', payload: 'p:again:1', cls: 'secondary' }]);
+}
+async function propVisit(id) {
+  const x = prop(id); if (!x) return say('No encontré esa propiedad 🤔');
+  const c = S().convo; const p = c.data?.p || {};
+  setStep('day', { mode: 'new', service: 'visita', prop: id, extra: `${x.id} · ${x.zone}`, p });
+  return startDay(false, `¡Buenísimo! Coordinemos la visita a **${x.title}** (${x.id}) 📅 ¿Qué día te queda mejor?`);
+}
+async function propContact(id) { const c = S().convo; c.data = { ...(c.data || {}), prop: id }; save(); return askContact('inmo'); }
+async function inmoContact() {
+  const st = S(); const d = st.convo.data; const x = prop(d.prop);
+  const lead = upsertInmoLead({ name: d.name, phone: d.phone, x, f: d.p, stage: 'calificado', visit: false });
+  renderPanel({ bump: true }); renderLeads({ flash: lead.id });
+  notifyPanel(`📈 Nuevo lead calificado: ${lead.name} · ${TEMP[lead.temp]}`, 'leads');
+  await say(`¡Listo, ${first(d.name)}! 🙌 ${B().agent} te escribe hoy al ${d.phone}${x ? ` para contarte todo sobre la ${x.id}` : ''}.\n¿Querés aprovechar y dejar agendada una visita?`);
+  setStep('idle', {});
+  setQuick(x ? [{ label: '📅 Agendar visita', payload: `prop:visit:${x.id}` }, { label: 'No por ahora', payload: 'intent:menu', cls: 'secondary' }] : MENU());
+}
+function upsertInmoLead({ name, phone, x, f, stage, visit, bookingId }) {
+  const st = S(); st.leads = st.leads || [];
+  const order = B().stages.map(s => s.id);
+  let L = st.leads.find(l => samePhone(l.phone, phone) && (!x || l.propId === x.id || !l.propId) && !['cerrado'].includes(l.stage));
+  const detail = x ? `${OPS[x.op]} · ${x.title} (${x.id})` : 'Consulta general';
+  const temp = qualify(f, { contact: true, visit });
+  if (L) {
+    Object.assign(L, { name, detail, propId: x?.id || L.propId, value: x ? propValue(x) : L.value, temp: ['hot', 'warm', 'cold'].indexOf(temp) < ['hot', 'warm', 'cold'].indexOf(L.temp) ? temp : L.temp });
+    if (order.indexOf(stage) > order.indexOf(L.stage)) L.stage = stage;
+    if (bookingId) L.bookingId = bookingId; save(); return L;
+  }
+  return addLead({ name, phone, stage, value: x ? propValue(x) : 0, detail, propId: x?.id, temp, bookingId });
+}
+
+/* Panel: oportunidades */
+function salesCards() {
+  const b = B(); const st = S(); const L = st.leads || []; const s = computeStats();
+  const closedIds = ['ganado', 'cerrado']; const lostIds = ['perdido'];
+  const open = L.filter(x => !closedIds.includes(x.stage) && !lostIds.includes(x.stage));
+  const won = L.filter(x => closedIds.includes(x.stage)); const lost = L.filter(x => lostIds.includes(x.stage));
+  const openV = open.reduce((a, x) => a + (x.value || 0), 0), wonV = won.reduce((a, x) => a + (x.value || 0), 0);
+  const rate = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) : 0;
+  if (state.biz === 'contenedores') {
+    const q = L.filter(x => x.quoteNo).length; const fromChat = L.filter(x => x.quoteNo && x.source === 'chat').length;
+    return [
+      ['🧾 Cotizaciones', q, fromChat ? `${fromChat} generadas por el chat` : 'Generadas por el bot'],
+      ['💰 Pipeline abierto', usd(openV), `${open.length} oportunidades activas`],
+      ['📅 Visitas y llamadas', s.week, 'Agendadas esta semana'],
+      ['🏆 Ganado', usd(wonV), `Tasa de cierre: ${rate} %`, 'hl'],
+    ];
+  }
+  const hot = L.filter(x => x.temp === 'hot' && open.includes(x)).length, warm = L.filter(x => x.temp === 'warm' && open.includes(x)).length, cold = L.filter(x => x.temp === 'cold' && open.includes(x)).length;
+  return [
+    ['🔥 Leads calientes', hot, `${warm} tibios · ${cold} fríos`],
+    ['💰 Pipeline abierto', usd(openV), `${open.length} oportunidades activas`],
+    ['📅 Visitas de la semana', s.week, s.chat ? `${s.chat} agendadas por el chat` : 'Lunes a domingo'],
+    ['🤝 Cerrado', usd(wonV), `${won.length} ${won.length === 1 ? 'operación' : 'operaciones'} este mes`, 'hl'],
+  ];
+}
+function leadCard(x, i) {
+  const b = B(); const st = S(); const next = b.stages[i + 1];
+  const bk = x.bookingId ? st.bookings.find(k => k.id === x.bookingId && k.status !== 'cancelado') : null;
+  let acts = '';
+  if (x.stage === 'perdido') acts = `<button class="mini" data-lm="reopen" data-id="${x.id}">↺ Reabrir</button>`;
+  else acts = `<button class="mini" data-lm="-1" data-id="${x.id}" ${i === 0 ? 'disabled' : ''} title="Etapa anterior" aria-label="Etapa anterior">◀</button>`
+    + `<button class="mini ok" data-lm="1" data-id="${x.id}" ${!next || next.id === 'perdido' ? 'disabled' : ''} title="${next && next.id !== 'perdido' ? 'Pasar a ' + next.label : ''}" aria-label="Etapa siguiente">${next && next.id !== 'perdido' ? next.label + ' ▶' : '▶'}</button>`
+    + (b.stages.some(s => s.id === 'perdido') && !['ganado'].includes(x.stage) ? `<button class="mini no" data-lm="lost" data-id="${x.id}" title="Marcar como perdido">✗</button>` : '');
+  return `<div class="lead" data-lid="${x.id}">
+    <div class="lead-top"><b>${esc(x.name)}</b>${x.temp ? `<span class="temp t-${x.temp}">${TEMP[x.temp]}</span>` : ''}</div>
+    <div class="lead-d">${esc(x.detail)}</div>
+    <div class="lead-m">${chBadge(x.channel)}${x.quoteNo ? `<span class="qno">${x.quoteNo}</span>` : ''}<b class="val">${usd(x.value || 0)}</b></div>
+    ${bk ? `<div class="lead-x">📅 ${esc(service(bk.service).name)} · ${dayChip(bk.date)} ${bk.time}</div>` : ''}
+    ${x.followup ? `<div class="lead-x">📨 Seguimiento ${x.followup === 'enviado' ? 'enviado, esperando respuesta' : 'respondido'}</div>` : ''}
+    ${x.lostReason ? `<div class="lead-x lost">✗ ${esc(x.lostReason)}</div>` : ''}
+    ${x.source === 'chat' ? '<span class="tag src-chat">💬 Desde el chat</span>' : ''}
+    <div class="lead-a">${acts}</div></div>`;
+}
+function renderLeads(opts = {}) {
+  updateLeadsBadge();
+  const el = $('#pipeline'); if (!el || !isSales()) return;
+  const b = B(); const L = S().leads || [];
+  const cards = salesCards();
+  $('#leadStats').innerHTML = cards.map(([k, v, sub, cls]) => `<div class="stat ${cls || ''}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${esc(sub)}</div></div>`).join('');
+  el.innerHTML = b.stages.map((sg, i) => {
+    const items = L.filter(x => x.stage === sg.id).sort((a, z) => z.createdAt - a.createdAt);
+    const tot = items.reduce((a, x) => a + (x.value || 0), 0);
+    return `<div class="pcol st-${sg.id}" data-stage="${sg.id}"><div class="pcol-h"><b>${sg.label}</b><span class="n">${items.length}</span><small>${usd(tot)}</small></div>
+      <div class="pcol-b">${items.map(x => leadCard(x, i)).join('') || '<div class="pempty">Sin oportunidades</div>'}</div></div>`;
+  }).join('');
+  if (opts.flash) { const c = el.querySelector(`[data-lid="${opts.flash}"]`); if (c) { c.classList.add('flash'); c.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); } }
+}
+function updateLeadsBadge() {
+  const el = $('#leadsBadge'); if (!el) return;
+  const n = isSales() ? (S().leads || []).filter(x => x.stage === 'nuevo' || (x.source === 'chat' && !x.seen)).length : 0;
+  el.hidden = !n; el.textContent = n > 9 ? '9+' : n;
+  const m = $('#mobileLeadsBadge'); if (m) { m.hidden = !n; m.textContent = el.textContent; }
+}
+function moveLead(id, how) {
+  const b = B(); const st = S(); const L = (st.leads || []).find(x => x.id === id); if (!L) return;
+  const order = b.stages.map(s => s.id); let i = order.indexOf(L.stage);
+  if (how === 'lost') { L.stage = 'perdido'; L.lostReason = L.lostReason || 'Marcado como perdido desde el panel'; }
+  else if (how === 'reopen') { L.stage = L.quoteNo ? 'cotizado' : 'nuevo'; delete L.lostReason; }
+  else { i = Math.max(0, Math.min(order.length - 1, i + +how)); if (order[i] === 'perdido') return; L.stage = order[i]; }
+  L.seen = true; save();
+  const label = b.stages.find(s => s.id === L.stage).label;
+  if (['ganado', 'cerrado'].includes(L.stage)) toast(`🏆 ¡${L.stage === 'ganado' ? 'Venta ganada' : 'Operación cerrada'}! ${L.name} · ${usd(L.value || 0)}`);
+  else toast(`➡️ ${L.name} pasó a “${label}”`);
+  renderStats(true); renderLeads({ flash: L.id });
+}
+function seedLeads(key, st) {
+  const ago = h => Date.now() - h * 3600000;
+  const bkOf = n => st.bookings.find(x => x.name === BIZ[key].names[n] && x.status === 'confirmado' && !isPast(x.date, x.time));
+  const mk = (o, n) => ({ id: uid(), email: '', source: 'seed', followup: null, ...o, ...(n != null && bkOf(n) ? { bookingId: bkOf(n).id, name: BIZ[key].names[n] } : {}) });
+  if (key === 'contenedores') return [
+    mk({ name: 'Gonzalo Ejemplo', phone: '099 000 101', stage: 'nuevo', value: 5300, detail: "Consulta 40' HC para chacra · Florida", channel: 'instagram', createdAt: ago(1) }),
+    mk({ name: 'Andrea Prueba', phone: '099 000 102', stage: 'nuevo', value: 1260, detail: "Alquiler 20' para obra (3 meses) · Montevideo", channel: 'web', createdAt: ago(5) }),
+    mk({ name: 'Martín Prueba', phone: '099 000 002', stage: 'cotizado', value: 4800, quoteNo: 'COT-1038', detail: "2 × 20' usado · Canelones", channel: 'whatsapp', createdAt: ago(52) }),
+    mk({ name: 'Florencia Demo', phone: '099 000 104', email: 'florencia.demo@ejemplo.com', stage: 'cotizado', value: 18080, quoteNo: 'COT-1040', detail: "1 × Oficina modificada 40' · Maldonado", channel: 'email', createdAt: ago(30) }),
+    mk({ name: 'Hernán Muestra', phone: '099 000 105', stage: 'cotizado', value: 5080, quoteNo: 'COT-1041', detail: "1 × 40' one-trip · Montevideo", channel: 'whatsapp', createdAt: ago(49) }),
+    mk({ phone: '099 000 007', stage: 'visita', value: 30200, quoteNo: 'COT-1036', detail: "1 × Vivienda modificada 40' HC · Rocha", channel: 'whatsapp', createdAt: ago(80) }, 6),
+    mk({ phone: '099 000 001', stage: 'visita', value: 9690, quoteNo: 'COT-1035', detail: "3 × 40' usado · San José", channel: 'messenger', createdAt: ago(100) }, 0),
+    mk({ name: 'Cooperativa Ficticia', phone: '099 000 108', stage: 'ganado', value: 18280, quoteNo: 'COT-1029', detail: "4 × 20' nuevo · Colonia", channel: 'email', createdAt: ago(200) }),
+    mk({ name: 'Esteban Testeo', phone: '099 000 109', stage: 'perdido', value: 2770, quoteNo: 'COT-1031', detail: "1 × 20' usado · Salto", channel: 'whatsapp', createdAt: ago(170), lostReason: 'Eligió otro proveedor' }),
+  ];
+  return [
+    mk({ name: 'Roberto Muestra', phone: '099 000 090', stage: 'nuevo', value: 12600, temp: 'warm', detail: 'Alquiler anual · 2 dormitorios con balcón (CE-201)', propId: 'CE-201', channel: 'messenger', createdAt: ago(2) }),
+    mk({ name: 'Paula Muestra', phone: '099 000 202', stage: 'nuevo', value: 2240, temp: 'warm', detail: 'Temporario enero · 2 dorm. en Punta del Este', channel: 'instagram', createdAt: ago(1) }),
+    mk({ name: 'Martín Prueba', phone: '099 000 002', stage: 'calificado', value: 245000, temp: 'warm', detail: 'Venta · Apartamento con vista al puerto (CE-101)', propId: 'CE-101', channel: 'whatsapp', createdAt: ago(28) }),
+    mk({ name: 'Romina Ejemplar', phone: '099 000 204', stage: 'calificado', value: 25500, temp: 'cold', detail: 'Alquiler anual · Casa en Carrasco (CE-204)', propId: 'CE-204', channel: 'web', createdAt: ago(40) }),
+    mk({ phone: '099 000 007', stage: 'visita', value: 210000, temp: 'hot', detail: 'Venta · A una cuadra de la rambla (CE-105)', propId: 'CE-105', channel: 'whatsapp', createdAt: ago(60) }, 6),
+    mk({ phone: '099 000 001', stage: 'visita', value: 2240, temp: 'hot', detail: 'Temporario · 2 dormitorios con vista al mar (CE-304)', propId: 'CE-304', channel: 'instagram', createdAt: ago(75) }, 0),
+    mk({ name: 'Familia Ficticia', phone: '099 000 207', stage: 'oferta', value: 495000, temp: 'hot', detail: 'Oferta USD 495.000 · Casa entre pinos (CE-104)', propId: 'CE-104', channel: 'email', createdAt: ago(120) }),
+    mk({ name: 'Diego Ficticio', phone: '099 000 004', stage: 'cerrado', value: 7200, temp: 'hot', detail: 'Alquiler anual firmado con garantía ANDA (CE-203)', propId: 'CE-203', channel: 'whatsapp', createdAt: ago(300) }),
+  ];
 }
 
 /* ---------- Bandeja omnicanal ---------- */
@@ -739,6 +1313,10 @@ const chBadge = (ch, extra = '') => { const c = CHANNELS[ch]; return `<span clas
 
 function reminderText(bk, key = state.biz) {
   const b = BIZ[key]; const s = b.services.find(x => x.id === bk.service) || b.services[0];
+  if (b.kind === 'sales') {
+    const where = s.id !== 'visita' ? `Te contactamos al ${bk.phone}.` : key === 'inmobiliaria' ? `${b.agent} te espera en la puerta de la propiedad 🏠` : `Te esperamos en ${b.address}.`;
+    return `Hola ${first(bk.name)} 👋 Te recordamos tu **${s.name.toLowerCase()}**${bk.extra ? ` (**${bk.extra}**)` : ''} ${dayPhrase(bk.date)} a las **${bk.time}** con ${b.name}. ${where}\n\n¿Confirmás o preferís reprogramarla?`;
+  }
   return `Hola ${first(bk.name)} 👋 Te recordamos tu turno de **${s.name}**${bk.extra ? ` para **${bk.extra}**` : ''} ${dayPhrase(bk.date)} a las **${bk.time}** en ${b.name} (${b.address}).\n\n¿Nos confirmás tu asistencia?`;
 }
 
@@ -776,15 +1354,35 @@ function seedInbox(key, st) {
       web: [['¿Qué tengo que llevar a la primera clase?', 210], ['Ropa cómoda y medias antideslizantes (si no tenés, te prestamos 😉). Tenemos vestuario con duchas.', 210], ['Buenísimo, gracias!', 207]],
       mail: ['Asunto: Factura pase mensual\nHola, ¿me pueden mandar la factura del pase de noviembre a nombre de mi empresa? Gracias.', 'Hola Sofía, ¡sí! Te la enviamos hoy por este medio. Saludos, Florencia.', 'Factura a nombre de empresa (RUT ficticio en el legajo).'],
     },
+    contenedores: {
+      ig: ['Gonzalo Ejemplo', '@gonza.chacra', [
+        ['client', 'Hola! ¿Cuánto sale un contenedor de 40 pies? Lo quiero para guardar herramientas en el campo 🚜', 52],
+        ['bot', "¡Hola Gonzalo! 👋 Un **40' usado** (apto carga) está entre **USD 2.500 y 3.100**, y un **40' HC one-trip** entre **USD 5.000 y 5.600**, más el envío según el departamento. ¿Me decís dónde sería la entrega y te armo la cotización?", 51],
+        ['client', 'Es en Florida, cerca de Sarandí Grande. ¿El HC es más alto?', 8]]],
+      fb: [["Hola, alquilé un 20' para la obra y me dijeron que lo entregaban ayer y no llegó 😠", 95], ['Tengo a los albañiles esperando', 94]],
+      fbBot: 'Lamento mucho la demora, Roberto 🙏 Te derivo con el equipo de ventas y logística para que te confirmen hoy mismo el horario de entrega.',
+      web: [['¿Hacen contenedores adaptados como oficina con baño?', 205], ["¡Sí! Hacemos oficinas modificadas en 20' y 40', con aislación, aire acondicionado, instalación eléctrica y baño opcional. Una oficina de 20' arranca en **USD 9.500**. ¿Querés que te arme una cotización?", 205], ['Dale, después la pido por el chat. Gracias!', 202]],
+      mail: ['Asunto: Factura y certificado de los contenedores\nHola, compramos 2 contenedores la semana pasada. ¿Nos pueden mandar la factura con RUT y el certificado de inspección? Gracias.', 'Hola Sofía, te adjuntamos la factura y el certificado de inspección de ambos contenedores. A las órdenes. Saludos, Rodrigo.', 'Cliente ganado. Enviar certificados de inspección y coordinar encuesta de satisfacción.'],
+    },
+    inmobiliaria: {
+      ig: ['Paula Muestra', '@pau.muestra', [
+        ['client', 'Hola! Busco algo para alquilar en enero en Punta, 2 dormitorios, cerca de la playa ☀️', 48],
+        ['bot', '¡Hola Paula! 👋 Para enero tengo un **2 dormitorios con vista al mar en Playa Mansa** (USD 160 por noche) y otro **frente a Playa Brava** con amenities (USD 220 por noche). ¿Querés que te mande las fichas?', 47],
+        ['client', 'Siii! ¿Aceptan mascotas? Tengo una perrita chiquita 🐶', 6]]],
+      fb: [['Hola, vi el apartamento de 2 dormitorios en Pocitos que publicaron. ¿Sigue disponible?', 93], ['¿Aceptan garantía ANDA? ¿Lo puedo ver el sábado?', 92]],
+      fbBot: 'Sí, Roberto: sigue disponible y aceptamos garantía ANDA 🙌 Para coordinar la visita del sábado te derivo con un agente, que te confirma el horario.',
+      web: [['¿Cuánto es la comisión si compro?', 215], ['La comisión en compra es del **3 % + IVA** sobre el precio. En alquiler anual es un mes de alquiler + IVA. ¿Querés que te muestre propiedades?', 215], ['Por ahora no, gracias!', 212]],
+      mail: ['Asunto: Documentación para la oferta\nHola, ¿qué documentos tengo que presentar para hacer la oferta por la casa de La Barra?', 'Hola Sofía, te pasamos la lista: cédula, constancia de domicilio y la carta oferta firmada. Te la mandamos en PDF. Saludos, Valeria.', 'Oferta en curso por CE-104. Coordinar con escribanía.'],
+    },
   }[key];
   const msgs = arr => arr.map(([from, text, m, kind]) => ({ from, text, ts: ago(m), ...(kind ? { kind } : {}) }));
   const convs = [];
   convs.push({ id: uid(), channel: 'instagram', name: C.ig[0], handle: C.ig[1], phone: '', status: 'bot', attention: false, botPaused: false, unread: 1, notes: [], messages: msgs(C.ig[2]) });
   convs.push({ id: uid(), channel: 'messenger', name: 'Roberto Muestra', handle: 'Roberto Muestra (Facebook)', phone: '099 000 090', status: 'derivado', attention: true, botPaused: false, unread: 2, notes: [],
-    messages: msgs([['client', C.fb[0][0], C.fb[0][1]], ['client', C.fb[1][0], C.fb[1][1]], ['bot', C.fbBot, C.fb[1][1] - 0.5], ['sys', '🔔 Conversación derivada a recepción', C.fb[1][1] - 0.6]]) });
+    messages: msgs([['client', C.fb[0][0], C.fb[0][1]], ['client', C.fb[1][0], C.fb[1][1]], ['bot', C.fbBot, C.fb[1][1] - 0.5], ['sys', `🔔 Conversación derivada a ${b.handoffTo || 'recepción'}`, C.fb[1][1] - 0.6]]) });
   const rb = st.bookings.find(x => x.reminder === 'confirmado' && x.status === 'confirmado' && x.source === 'seed') || st.bookings.find(x => x.status === 'confirmado');
   if (rb) convs.push({ id: uid(), channel: 'whatsapp', name: rb.name, handle: rb.phone, phone: rb.phone, status: 'resuelto', attention: false, botPaused: false, unread: 0, notes: [],
-    messages: msgs([['bot', reminderText(rb, key), 150, 'reminder'], ['client', '✅ Confirmo', 128], ['bot', `¡Genial, ${first(rb.name)}! Tu turno queda **confirmado** ✅ Te esperamos ${dayPhrase(rb.date)} a las **${rb.time}**.`, 128]]) });
+    messages: msgs([['bot', reminderText(rb, key), 150, 'reminder'], ['client', '✅ Confirmo', 128], ['bot', b.kind === 'sales' ? salesConfirmText(rb, key) : `¡Genial, ${first(rb.name)}! Tu turno queda **confirmado** ✅ Te esperamos ${dayPhrase(rb.date)} a las **${rb.time}**.`, 128]]) });
   convs.push({ id: uid(), channel: 'web', name: 'Laura Testeo', handle: 'Visitante de la web', phone: '', status: 'resuelto', attention: false, botPaused: false, unread: 0, notes: [],
     messages: msgs([['client', C.web[0][0], C.web[0][1]], ['bot', C.web[1][0], C.web[1][1]], ['client', C.web[2][0], C.web[2][1]], ['bot', '¡De nada! 😊 Cualquier cosa, escribime por acá.', C.web[2][1] - 0.3]]) });
   const sb = st.bookings.find(x => x.name === BIZ[key].names[4]);
@@ -822,10 +1420,11 @@ const inboxVisible = () => panelTab === 'inbox' && (!isMobile() || $('#stage').d
 
 function setPanelTab(t) {
   panelTab = t;
-  $('#tabAgenda').hidden = t !== 'agenda'; $('#tabInbox').hidden = t !== 'inbox';
+  if (t === 'leads' && !isSales()) t = 'agenda'; panelTab = t;
+  $('#tabAgenda').hidden = t !== 'agenda'; $('#tabInbox').hidden = t !== 'inbox'; $('#tabLeads').hidden = t !== 'leads';
   document.querySelectorAll('#ptabs button').forEach(b => b.classList.toggle('active', b.dataset.ptab === t));
   syncMobileTabs();
-  if (t === 'inbox') { if (selConv) { const m = metaOf(selConv); if (m) { m.unread = 0; save(); } } renderInbox(); } else renderPanel();
+  if (t === 'inbox') { if (selConv) { const m = metaOf(selConv); if (m) { m.unread = 0; save(); } } renderInbox(); } else if (t === 'leads') { renderLeads(); } else renderPanel();
 }
 function updateInboxBadge() {
   if (!S().inbox) return;
@@ -922,7 +1521,7 @@ function renderThreadHead() {
   else if (c.botPaused) ban += `<div class="ban ban-pause">⏸ <span><b>Bot en pausa:</b> está atendiendo ${esc(B().agent)}. El asistente no responde hasta que lo devuelvas.</span></div>`;
   if (c.live) ban += `<div class="ban ban-live">🔴 <span>Es la conversación del chat ${isMobile() ? 'de la pestaña «Chat»' : 'de la izquierda'}: lo que respondas aparece ahí en tiempo real.</span></div>`;
   $('#thBanner').innerHTML = ban;
-  $('#thInput').placeholder = composeMode === 'note' ? 'Nota interna: solo la ve tu equipo…' : c.live ? 'Respondé como recepción: aparece en el chat del cliente…' : `Respondé por ${col.label}…`;
+  $('#thInput').placeholder = composeMode === 'note' ? 'Nota interna: solo la ve tu equipo…' : c.live ? `Respondé como ${roleLabel().toLowerCase()}: aparece en el chat del cliente…` : `Respondé por ${col.label}…`;
   $('#ibxThread').classList.toggle('has-card', showCard);
 }
 function renderThreadBody() {
@@ -958,8 +1557,9 @@ function renderCard() {
       <dt>Teléfono</dt><dd>${esc(c.phone || 'Sin dato todavía')}</dd>
       ${mine.length ? `<dt>Historial</dt><dd>${att} asistencias · ${no} ausencias · ${cx} cancelaciones</dd>` : ''}
     </dl>
-    <h5>Próximos turnos</h5>
+    <h5>${isSales() ? 'Próximas visitas y llamadas' : 'Próximos turnos'}</h5>
     ${upcoming.length ? upcoming.map(x => `<button class="cc-appt" data-goto-bk="${x.id}"><b>${dayChip(x.date)} · ${x.time}</b><span>${esc(service(x.service).name)}${x.extra ? ' · ' + esc(x.extra) : ''}</span>${(() => { const [ch, l] = statusInfo(x); return `<span class="chip ${ch}">${l}</span>`; })()}</button>`).join('') : '<p class="cc-empty">Sin turnos agendados.</p>'}
+    ${isSales() ? (() => { const ls = (st.leads || []).filter(l => (c.phone && samePhone(l.phone, c.phone)) || l.name === c.name); return `<h5>Oportunidades</h5>` + (ls.length ? ls.map(l => `<button class="cc-appt" data-goto-lead="${l.id}"><b>${esc(B().stages.find(s => s.id === l.stage).label)} · ${usd(l.value || 0)}</b><span>${esc(l.detail)}</span>${l.temp ? `<span class="temp t-${l.temp}">${TEMP[l.temp]}</span>` : ''}</button>`).join('') : '<p class="cc-empty">Todavía sin oportunidad en el embudo.</p>'); })() : ''}
     <h5>Notas internas</h5>
     ${notes.length ? notes.map(n => `<div class="cc-note">${fmt(n.text)}<small>${esc(n.agent || B().agent)} · ${shortTime(n.ts)}</small></div>`).join('') : '<p class="cc-empty">Todavía no hay notas.</p>'}
     <button class="mini" data-ia="notemode">🔒 Agregar nota</button>`;
@@ -987,7 +1587,7 @@ function addEvent(id, text) {
 function takeConv(id) {
   const m = metaOf(id); if (m.botPaused) return;
   m.botPaused = true; m.attention = false; m.status = 'derivado';
-  if (id === 'live') { save(); setQuick([]); sys(`👩‍💼 ${B().agent} (recepción) se sumó a la conversación`); renderHeader(); }
+  if (id === 'live') { save(); setQuick([]); sys(`👩‍💼 ${B().agent} (${roleLabel().toLowerCase()}) se sumó a la conversación`); renderHeader(); }
   else { m.messages.push({ from: 'sys', text: `👩‍💼 ${B().agent} tomó la conversación`, ts: Date.now() }); }
   save(); toast(`✋ Tomaste la conversación con ${convOf(id).name}: el bot queda en pausa`);
 }
@@ -1080,22 +1680,32 @@ $('#nextDate').addEventListener('click', () => { panelDate = ymd(addDays(parseYm
 $('#todayBtn').addEventListener('click', () => { panelDate = todayStr(); renderPanel(); });
 document.querySelectorAll('#mobileTabs button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
 document.querySelectorAll('#bizSwitch button').forEach(b => b.addEventListener('click', () => switchBiz(b.dataset.biz)));
+chatBody.addEventListener('click', e => { const b = e.target.closest('[data-card]'); if (b) userSays(b.dataset.label || b.textContent, b.dataset.card); });
+$('#pipeline').addEventListener('click', e => { const b = e.target.closest('[data-lm]'); if (b && !b.disabled) moveLead(b.dataset.id, b.dataset.lm); });
+$('#btnCopyLink').addEventListener('click', () => {
+  const url = `${location.origin}${location.pathname}?rubro=${rubroOf(state.biz)}`;
+  const done = () => toast(`🔗 Link copiado: ${url}`);
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(done, () => toast(`🔗 ${url}`)); else toast(`🔗 ${url}`);
+});
 $('#btnReminder').addEventListener('click', () => sendReminder());
 $('#btnReset').addEventListener('click', () => {
   const biz = state.biz; state = fresh(); state.biz = biz; save();
   typingOn = false; queue = Promise.resolve(); panelDate = todayStr(); panelMode = 'day'; selConv = null; ibxFilter = { ch: 'all', st: 'all', q: '' }; $('#ibxSearch').value = ''; $('#stFilter').value = 'all';
   boot(); toast('↺ Demo reiniciada con datos de ejemplo');
 });
-window.addEventListener('storage', e => { if (e.key === STORE_KEY && !typingOn) { load(); renderHeader(); renderChat(); renderPanel(); renderInbox(); } });
+window.addEventListener('storage', e => { if (e.key === STORE_KEY && !typingOn) { load(); renderHeader(); renderChat(); renderPanel(); renderInbox(); renderLeads(); } });
 
+function syncUrl() {
+  try { const u = new URL(location.href); u.searchParams.set('rubro', rubroOf(state.biz)); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch {}
+}
 function switchBiz(key) {
-  if (key === state.biz || typingOn) return;
-  state.biz = key; save(); panelDate = todayStr(); selConv = null;
+  if (key === state.biz || typingOn || !BIZ[key]) return;
+  state.biz = key; save(); panelDate = todayStr(); selConv = null; syncUrl();
   boot();
 }
 function boot() {
   bizState(); save();
-  renderHeader(); renderChat(); renderPanel(); renderInbox();
+  renderHeader(); renderChat(); renderPanel(); renderInbox(); renderLeads();
   if (!S().chat.length) queue = queue.then(() => welcome(false));
 }
 

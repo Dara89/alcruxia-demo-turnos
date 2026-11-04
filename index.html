@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bot de turnos con recordatorios · Demo por Alcruxia</title>
-<meta name="description" content="Demo interactiva: asistente de turnos con recordatorios automáticos para clínicas, veterinarias y estudios. Por Alcruxia.">
+<title>Asistente inteligente para tu negocio · Demo por Alcruxia</title>
+<meta name="description" content="Demo interactiva multi-rubro: asistente inteligente con agenda, recordatorios, bandeja omnicanal y embudo de ventas para clínicas, veterinarias, estudios, venta de contenedores e inmobiliarias. Por Alcruxia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,14 +19,8 @@
     </div>
     <div class="brand-text">
       <strong>Alcruxia</strong>
-      <span>Bot de turnos con recordatorios · <em>Demo</em></span>
+      <span>Asistente inteligente para tu negocio · <em>Demo</em></span>
     </div>
-  </div>
-
-  <div class="biz-switch" role="tablist" aria-label="Tipo de negocio" id="bizSwitch">
-    <button role="tab" data-biz="dental">🦷 <span>Dental</span></button>
-    <button role="tab" data-biz="vet">🐾 <span>Veterinaria</span></button>
-    <button role="tab" data-biz="pilates">🧘 <span>Pilates</span></button>
   </div>
 
   <div class="top-actions">
@@ -35,10 +29,23 @@
   </div>
 </header>
 
+<section class="rubros" aria-label="Elegí el rubro">
+  <div class="rubros-label"><b>Elegí el rubro</b><span>El mismo asistente, adaptado a cada negocio</span></div>
+  <div class="biz-switch" role="tablist" aria-label="Tipo de negocio" id="bizSwitch">
+    <button role="tab" data-biz="dental"><i>🦷</i><span><b>Clínica dental</b><small>Turnos y recordatorios</small></span></button>
+    <button role="tab" data-biz="vet"><i>🐾</i><span><b>Veterinaria</b><small>Turnos y mascotas</small></span></button>
+    <button role="tab" data-biz="pilates"><i>🧘</i><span><b>Pilates</b><small>Clases y reservas</small></span></button>
+    <button role="tab" data-biz="contenedores"><i>📦</i><span><b>Contenedores</b><small>Cotizaciones y ventas</small></span></button>
+    <button role="tab" data-biz="inmobiliaria"><i>🏠</i><span><b>Inmobiliaria</b><small>Propiedades y visitas</small></span></button>
+  </div>
+  <button class="btn btn-ghost btn-sm" id="btnCopyLink" title="Copia un link que abre la demo directo en este rubro">🔗 <span>Copiar link</span></button>
+</section>
+
 <nav class="mobile-tabs" id="mobileTabs">
   <button data-view="chat" class="active">💬 Chat</button>
   <button data-view="panel">📅 Agenda <b class="badge-dot" id="panelDot" hidden></b></button>
-  <button data-view="inbox">📥 Conversaciones <b class="cnt" id="mobileInboxBadge" hidden></b></button>
+  <button data-view="inbox">📥 <span class="lg">Conversaciones</span><span class="sm">Mensajes</span> <b class="cnt" id="mobileInboxBadge" hidden></b></button>
+  <button data-view="leads" id="mobileLeadsTab" hidden>📈 Leads <b class="cnt" id="mobileLeadsBadge" hidden></b></button>
 </nav>
 
 <main class="stage" id="stage" data-view="chat">
@@ -86,6 +93,7 @@
           <div class="ptabs" id="ptabs" role="tablist">
             <button data-ptab="agenda" class="active">📅 Agenda</button>
             <button data-ptab="inbox">💬 Conversaciones <b class="cnt" id="inboxBadge" hidden></b></button>
+            <button data-ptab="leads" id="ptabLeads" hidden>📈 Oportunidades <b class="cnt" id="leadsBadge" hidden></b></button>
           </div>
           <div class="live"><i></i> En vivo</div>
         </div>
@@ -115,6 +123,12 @@
         <span><i class="lg lg-no"></i>No vino</span>
         <span><i class="lg lg-block"></i>Bloqueado</span>
       </div>
+      </div>
+
+      <div class="ptab" id="tabLeads" hidden>
+        <div class="stats" id="leadStats"></div>
+        <div class="pipe-bar"><b>Embudo de ventas</b><span>Cada consulta del bot entra como oportunidad. Movela de etapa con los botones.</span></div>
+        <div class="pipeline" id="pipeline"></div>
       </div>
 
       <div class="ptab" id="tabInbox" hidden>
