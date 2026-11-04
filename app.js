@@ -242,12 +242,17 @@ function seedBiz(key) {
 const $ = s => document.querySelector(s);
 const chatBody = $('#chatBody'), quickEl = $('#quick'), input = $('#chatInput');
 
+function updStatus() {
+  const b = B(); const el = $('#chatStatus');
+  el.textContent = S().inbox?.live.botPaused ? `${b.agent} (${roleLabel(b).toLowerCase()}) está respondiendo` : typingOn ? 'escribiendo…' : 'en línea';
+  el.classList.toggle('typing-st', !!typingOn);
+}
 function renderHeader() {
   const b = B();
   document.body.dataset.biz = state.biz;
   $('#chatAvatar').textContent = b.emoji;
   $('#chatName').textContent = b.name;
-  $('#chatStatus').textContent = S().inbox?.live.botPaused ? `${b.agent} (${roleLabel(b).toLowerCase()}) está respondiendo` : `${b.assistant} · asistente virtual`;
+  updStatus();
   $('#panelTitle').textContent = b.panelTitle;
   const sales = b.kind === 'sales';
   $('#panelSub').textContent = `${b.name} · ${sales ? 'agenda y ventas en vivo' : 'agenda en vivo'}`;
@@ -273,7 +278,7 @@ function msgHTML(m) {
     inner += `<div class="actions ${m.used ? 'used' : ''}">` + m.actions.map(a =>
       `<button data-msg="${m.id}" data-payload="${esc(a.payload)}" class="${m.used === a.payload ? 'chosen' : ''}">${esc(a.label)}</button>`).join('') + `</div>`;
   }
-  return `<div class="msg ${m.from} ${m.kind || ''} ${m.cards ? 'has-cards' : ''}" data-id="${m.id}">${inner}<span class="time">${t}</span></div>`;
+  return `<div class="msg ${m.from} ${m.kind || ''} ${m.cards ? 'has-cards' : ''}" data-id="${m.id}">${inner}<span class="time">${t}${m.from === 'user' ? '<svg class="ticks" viewBox="0 0 18 11" width="16" height="11" aria-label="Leído"><path d="M11.1.6 4.9 7.9 2 5.1.9 6.2l4.1 4L12.2 1.6zM16.4.6 10.2 7.9 9.2 7l-1 1.1 2.1 2.1L17.5 1.6z" fill="#53bdeb"/></svg>' : ''}</span></div>`;
 }
 function propCard(p) {
   if (!p) return '';
@@ -298,13 +303,18 @@ function appendMsg(m) {
   const last = S().chat[S().chat.length - 2];
   if (!last || ymd(new Date(last.ts)) !== ymd(new Date(m.ts))) { renderChat(); return; }
   chatBody.querySelector('.typing')?.remove();
-  chatBody.insertAdjacentHTML('beforeend', msgHTML(m));
+  if (quickEl.parentNode === chatBody) quickEl.insertAdjacentHTML('beforebegin', msgHTML(m)); else chatBody.insertAdjacentHTML('beforeend', msgHTML(m));
   scrollChat();
 }
 const scrollChat = () => requestAnimationFrame(() => { chatBody.scrollTop = chatBody.scrollHeight; });
 function renderQuick() {
   const q = typingOn ? [] : (S().convo.quick || []);
-  quickEl.innerHTML = q.map(o => `<button data-payload="${esc(o.payload)}" class="${o.cls || ''}">${esc(o.label)}</button>`).join('');
+  const opt = o => `<button type="button" data-payload="${esc(o.payload)}" class="${o.cls || ''}">${esc(o.label)}</button>`;
+  quickEl.className = 'quick ' + (q.length > 3 ? 'wa-list' : 'wa-btns');
+  quickEl.innerHTML = !q.length ? '' : q.length <= 3 ? q.map(opt).join('')
+    : `<button type="button" class="wa-listbtn" data-open-sheet>☰ Ver opciones</button><div class="wa-sheet" hidden><div class="wa-sheet-card"><div class="wa-sheet-h"><button type="button" class="wa-sheet-x" data-close-sheet aria-label="Cerrar">✕</button><b>Elegí una opción</b></div><div class="wa-sheet-list">${q.map(opt).join('')}</div></div></div>`;
+  if (q.length) chatBody.appendChild(quickEl); else quickEl.remove();
+  updStatus(); scrollChat();
 }
 
 /* ---------- Motor de conversación ---------- */
@@ -321,7 +331,7 @@ async function say(text, opts = {}) {
   typingOn = true; renderQuick();
   chatBody.insertAdjacentHTML('beforeend', '<div class="typing"><i></i><i></i><i></i></div>'); scrollChat();
   await wait(opts.fast ? TYPE_MS / 2 : TYPE_MS + Math.min(text.length * (FAST ? 0 : 4), 500));
-  typingOn = false;
+  typingOn = false; updStatus();
   return push({ from: 'bot', text, ...opts.msg });
 }
 const sys = text => push({ from: 'sys', text });
@@ -1646,14 +1656,24 @@ $('#ibxThread').addEventListener('click', e => {
   if (a === 'reopen') { const m = metaOf(selConv); m.status = m.botPaused ? 'derivado' : 'bot'; addEvent(selConv, '↺ Conversación reabierta'); save(); }
   renderInbox();
 });
+function growTh() { const t = $('#thInput'); t.style.height = 'auto'; const lh = parseFloat(getComputedStyle(t).lineHeight) || 20; const pad = t.offsetHeight - t.clientHeight + 18; t.style.height = Math.min(t.scrollHeight + 2, lh * 6 + pad) + 'px'; t.style.overflowY = t.scrollHeight > lh * 6 + pad ? 'auto' : 'hidden'; }
+$('#thInput').addEventListener('input', growTh);
+$('#thInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#thComposer').requestSubmit(); } });
 $('#thComposer').addEventListener('submit', e => {
   e.preventDefault(); const v = $('#thInput').value.trim(); if (!v || !selConv) return;
-  $('#thInput').value = ''; sendStaff(selConv, v); renderInbox(); $('#thInput').focus();
+  $('#thInput').value = ''; growTh(); sendStaff(selConv, v); renderInbox(); $('#thInput').focus();
 });
 
 /* ---------- Eventos ---------- */
-$('#composer').addEventListener('submit', e => { e.preventDefault(); const v = input.value; if (!v.trim() || typingOn) return; input.value = ''; userSays(v); });
-quickEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) userSays(b.textContent, b.dataset.payload); });
+$('#composer').addEventListener('submit', e => { e.preventDefault(); const v = input.value; if (!v.trim() || typingOn) return; input.value = ''; $('#composer').classList.remove('has-text'); userSays(v); });
+quickEl.addEventListener('click', e => {
+  const b = e.target.closest('button'); const sh = quickEl.querySelector('.wa-sheet');
+  if (!b) { if (e.target === sh) sh.hidden = true; return; }
+  if (b.hasAttribute('data-open-sheet')) { sh.hidden = false; return; }
+  if (b.hasAttribute('data-close-sheet')) { sh.hidden = true; return; }
+  if (b.dataset.payload) userSays(b.textContent, b.dataset.payload);
+});
+input.addEventListener('input', () => $('#composer').classList.toggle('has-text', !!input.value.trim()));
 chatBody.addEventListener('click', e => {
   const b = e.target.closest('.actions button'); if (!b || typingOn) return;
   const m = S().chat.find(x => x.id === b.dataset.msg); if (!m || m.used) return;

@@ -459,3 +459,111 @@ body[data-biz="inmobiliaria"]{--accent:#B45309;--accent-soft:#FEF3C7}
 }
 [hidden]{display:none!important}
 @media (max-width:900px){ #leadStats .stat .v{font-size:21px} .rubros .biz-switch{position:relative} }
+
+/* ---------- Layout v4: compositor y espacios ---------- */
+.th-composer{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px 10px;padding:10px 12px 12px}
+.th-hint{justify-self:end;font-size:11px;color:var(--muted)}
+.th-hint kbd{font:inherit;font-weight:700;background:var(--gray-soft);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.th-write{grid-column:1 / -1;display:flex;gap:8px;align-items:flex-end}
+.th-write textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font:inherit;font-size:14px;line-height:20px;min-height:60px;max-height:150px;overflow-y:hidden;outline:none;white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;transition:border-color .15s,box-shadow .15s}
+.th-write textarea:focus{border-color:#A5B4FC;box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+.th-composer.note .th-write textarea{background:#FFFDF5;border-color:#FCD34D}
+.th-write .th-send{padding:11px 18px;font-size:14px;flex:none}
+.th-who b{white-space:normal;overflow:visible}
+/* Ficha del cliente: plegada (panel lateral bajo demanda) salvo en pantallas muy anchas */
+@media (min-width:1700px) and (max-width:1849px){
+  .ibx-thread{grid-template-columns:minmax(0,1fr)}
+  .ibx-card{position:absolute;display:none;grid-column:auto;grid-row:auto;width:290px;box-shadow:-12px 0 30px rgba(15,23,42,.08)}
+  .ibx-thread.has-card .ibx-card{display:flex}
+  .th-cardbtn,.card-close{display:inline-flex}
+}
+@media (min-width:1600px){ .stage,.rubros{max-width:1720px} }
+@media (min-width:1850px){ .ibx-thread{grid-template-columns:minmax(0,1fr) 280px} }
+@media (max-width:1480px){ .ibx{grid-template-columns:minmax(220px,250px) minmax(0,1fr)} }
+/* Stats y selector sin cortes */
+.stat .v{font-size:clamp(19px,1.6vw,26px);overflow-wrap:anywhere;line-height:1.15}
+.rubros .biz-switch button b,.rubros .biz-switch button small{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
+.lead-top b,.lead-d,.ptitle{overflow-wrap:anywhere}
+@media (max-width:900px){
+  .th-composer{grid-template-columns:1fr;padding:8px}
+  .th-hint{display:none}
+  .th-write textarea{font-size:16px}
+}
+@media (min-width:901px){ .pipeline{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));overflow-x:visible} }
+@media (max-width:1400px){ .rubros .biz-switch button b{font-size:12.5px;overflow-wrap:anywhere} }
+
+/* ---------- Chat del cliente estilo WhatsApp ---------- */
+.chat{position:relative;background:#efeae2;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wa-head{background:#f0f2f5;border-bottom:0;padding:44px 6px 8px 4px;gap:4px;color:#54656f}
+.wa-ib{width:34px;height:34px;display:grid;place-items:center;border:0;background:none;color:#54656f;flex:none;padding:0}
+.wa-back{width:28px}
+.wa-head .avatar{width:38px;height:38px;font-size:19px;background:#dfe5e7;box-shadow:none;margin-right:4px}
+.wa-head .chat-title strong{font-size:15.5px;font-weight:600;color:#111b21;display:flex;align-items:center;gap:3px}
+.wa-head .chat-title strong #chatName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wa-verified{display:inline-flex;flex:none}
+.wa-head #chatStatus{font-size:12.5px;color:#667781;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.wa-head #chatStatus.typing-st{color:#008069;font-weight:600}
+.chat-body{background-color:#efeae2;background-size:240px 240px;padding:10px 4.5% 8px;gap:3px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' fill='none' stroke='%23d6cfc4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 30c8-10 22-10 30 0M35 22v-8'/%3E%3Ccircle cx='110' cy='28' r='9'/%3E%3Cpath d='M106 26h.1M114 26h.1M106 32c3 3 5 3 8 0'/%3E%3Cpath d='M180 20l10 18h-20zM200 70h22v14h-22zM203 70v-4h16v4'/%3E%3Cpath d='M30 90c0-9 14-9 14 0 0-9 14-9 14 0 0 9-14 16-14 16s-14-7-14-16z'/%3E%3Cpath d='M100 80l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z'/%3E%3Cpath d='M160 120c10 0 18 6 18 14s-8 14-18 14l-8 6v-8c-6-3-10-7-10-12 0-8 8-14 18-14z'/%3E%3Ccircle cx='40' cy='160' r='14'/%3E%3Cpath d='M40 150v10l7 5'/%3E%3Cpath d='M95 150h30v22H95zM95 150l15 12 15-12'/%3E%3Cpath d='M190 190c6-14 26-14 32 0M206 176v-6M20 210q15-15 30 0t30 0M110 205l8 14 8-14M140 220h20'/%3E%3C/svg%3E")}
+.day-sep{background:#fff;color:#54656f;border:0;font-size:12px;font-weight:500;border-radius:8px;box-shadow:0 1px .5px rgba(11,20,26,.13);text-transform:uppercase;padding:5px 12px}
+.sys{background:#ffeecd;color:#54656f;border-radius:8px;font-size:12px;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+.msg{max-width:80%;font-size:14.2px;line-height:19px;color:#111b21;border-radius:8px;padding:6px 8px 8px 9px;box-shadow:0 1px .5px rgba(11,20,26,.13);border:0!important;margin-top:4px}
+.msg.bot,.msg.staff,.msg.reminder,.msg.quote,.msg.followup{background:#fff;border-top-left-radius:0}
+.msg.user{background:#d9fdd3;color:#111b21;border-top-right-radius:0;border-bottom-right-radius:8px}
+.msg.bot::before,.msg.staff::before,.msg.reminder::before,.msg.quote::before,.msg.followup::before{content:"";position:absolute;top:0;left:-8px;border-top:0 solid transparent;border-right:8px solid #fff;border-bottom:10px solid transparent}
+.msg.user::before{content:"";position:absolute;top:0;right:-8px;border-left:8px solid #d9fdd3;border-bottom:10px solid transparent}
+.msg .time{display:flex;justify-content:flex-end;align-items:center;gap:3px;font-size:11px;color:#667781;opacity:1;margin:2px -2px -4px 0;float:right;margin-left:10px;position:relative;top:5px}
+.msg .time .ticks{flex:none}
+.msg .rem-head{font-size:11.5px;text-transform:none;letter-spacing:0;font-weight:600}
+.msg .agent{color:#d97706;font-size:12.5px;font-weight:600}
+.msg.staff .agent{color:#c2410c}
+.typing{background:#fff;border:0;border-radius:8px;border-top-left-radius:0;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+.typing i{background:#8696a0}
+/* Botones de respuesta (mensajes interactivos) */
+.msg .actions{gap:0;margin:8px -8px -8px -9px;border-top:1px solid #e9edef;clear:both}
+.msg .actions button{border:0;border-radius:0;background:none;color:#027eb5;font-weight:500;font-size:14px;padding:10px 8px;text-align:center}
+.msg .actions button+button{border-top:1px solid #e9edef}
+.msg .actions button:hover{background:#f5f6f6}
+.msg .actions.used button.chosen{background:#e7f6fd;border:0}
+.msg:has(.actions) .time{position:absolute;right:8px;top:auto;bottom:auto}
+.quick{all:unset}
+.quick:empty{display:none}
+.quick.wa-btns,.quick.wa-list{display:flex;flex-direction:column;align-self:flex-start;width:80%;max-width:80%;margin-top:-1px;background:#fff;border-radius:0 0 8px 8px;box-shadow:0 1px .5px rgba(11,20,26,.13);animation:pop .2s}
+.msg.bot:has(+ .quick:not(:empty)){border-bottom-left-radius:0;border-bottom-right-radius:0}
+.quick button,.quick button.secondary,.quick button.time{border:0;border-top:1px solid #e9edef;border-radius:0;background:none;color:#027eb5;font-size:14px;font-weight:500;padding:10px 8px;text-align:center;min-width:0;animation:none;font-family:inherit}
+.quick button:hover{background:#f5f6f6;color:#027eb5}
+.quick .wa-listbtn{width:100%}
+.wa-sheet{position:absolute;inset:0;z-index:6;background:rgba(11,20,26,.4);display:flex;align-items:flex-end;animation:pop .15s}
+.wa-sheet[hidden]{display:none!important}
+.wa-sheet-card{background:#fff;width:100%;max-height:72%;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;padding-bottom:16px}
+.wa-sheet-h{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;font-size:16px;color:#111b21;border-bottom:1px solid #e9edef}
+.wa-sheet-h b{flex:1;text-align:center;margin-right:30px;font-weight:600}
+.quick .wa-sheet-x{border:0;width:30px;padding:4px;color:#54656f;font-size:16px}
+.wa-sheet-list{overflow-y:auto}
+.quick .wa-sheet-list button{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;color:#111b21;font-size:15px;padding:13px 18px;border-top:0;border-bottom:1px solid #f0f2f5}
+.quick .wa-sheet-list button::after{content:"";width:16px;height:16px;border:2px solid #8696a0;border-radius:50%;flex:none;margin-left:10px}
+.quick .wa-sheet-list button:hover{background:#f5f6f6;color:#111b21}
+/* Tarjetas tipo catálogo */
+.msg.has-cards{max-width:92%;width:auto}
+.pcards{margin:6px -4px 2px}
+.pcard{flex:0 0 205px;border:0;border-radius:8px;box-shadow:none;background:#f7f8fa;display:flex;flex-direction:column}
+.pcard .pbody{display:flex;flex-direction:column;padding:8px 10px 0}
+.pcard .ptitle{order:-1;font-weight:600;color:#111b21;font-size:14px}
+.pcard .pprice{order:0;font-size:14px;color:#111b21;font-weight:400}
+.pcard .pbtns{display:flex;flex-direction:column;gap:0;margin:8px -10px 0;border-top:1px solid #e9edef}
+.pcard .pbtns button,.pcard .pbtns button.sec{border:0;border-radius:0;background:none;color:#027eb5;font-weight:500;font-size:14px;padding:9px;text-align:center}
+.pcard .pbtns button+button{border-top:1px solid #e9edef}
+/* Barra de escritura */
+.wa-composer{background:transparent;padding:6px 6px 4px;gap:6px;align-items:flex-end;position:relative;z-index:1}
+.chat .composer,.chat .chat-foot{background:#efeae2}
+.wa-field{flex:1;display:flex;align-items:center;background:#fff;border-radius:24px;padding:0 6px;min-height:46px;box-shadow:0 1px .5px rgba(11,20,26,.13);color:#8696a0}
+.wa-field .wa-ic{display:grid;place-items:center;width:32px;height:32px;flex:none}
+.wa-composer .wa-field input{border:0;box-shadow:none;padding:10px 4px;font-size:15px;background:none;min-width:0}
+.wa-composer .wa-field input:focus{box-shadow:none}
+.wa-clip svg{transform:rotate(-45deg)}
+.wa-composer .send{width:46px;height:46px;background:#00a884;box-shadow:0 1px 2px rgba(11,20,26,.2)}
+.wa-composer .send .i-send{display:none}
+.wa-composer.has-text .send .i-send{display:block}
+.wa-composer.has-text .send .i-mic{display:none}
+.wa-composer.has-text .wa-cam{display:none}
+.chat-foot{color:#667781}
